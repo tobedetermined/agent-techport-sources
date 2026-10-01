@@ -1,6 +1,6 @@
 # Agent TechPort Sources: design note
 
-Status: **in development, plugin version 0.1.2.** The SBIR, TechPort and
+Status: **in development, plugin version 0.1.3.** The SBIR, TechPort and
 USAspending servers are built and tested; the other three sources are planned. Decisions and
 evidence date from 2026-09-30. Every number below was measured unless it is
 marked *assumed*.
@@ -1729,9 +1729,35 @@ advice, not a tool problem.
      (EDGAR refused, correctly, with no contact set; SBIR's 395 MB first
      download wasn't triggered). *Not yet seen:* a Claude Code session
      running the plugin from the cache.
-2. **NASA marketplace allowlist.** Managed Claude Code settings
-   (`strictKnownMarketplaces`) can stop users adding GitHub marketplaces. Find
-   out whether NASA's deployment sets this.
+   - **Self-check command** (added 2026-10-01, at the user's request):
+     `commands/selfcheck.md` ships with the plugin as
+     `/agent-techport-sources:selfcheck`. Claude makes one fixed request per
+     source with a known answer (TechPort program 72 is FO; contract
+     NNX09CB40C went to Orbital Technologies Corporation; SPCE is CIK
+     1706946; NTRS and Tech Transfer find "regolith") and shows a pass/fail
+     table with hints. SBIR runs only with `sbir`, because of its first
+     download. Chosen over a terminal script because it goes through
+     Claude Code itself, the path users rely on, and sees the EDGAR
+     settings, which reach only the servers. Run headless with the plugin
+     loaded from this folder: four sources passed, SBIR passed when asked
+     for, and EDGAR failed with the "not set" hint, as expected with no
+     settings under `@inline`.
+2. ~~NASA marketplace allowlist.~~ **Answered 2026-10-01** on a
+   NASA-managed Mac without admin rights: `/plugin marketplace add
+   tobedetermined/agent-techport-sources` worked with no policy block, uv's
+   standalone installer needed no admin rights, the install asked for the
+   EDGAR name and email, and after a restart `/mcp` showed all six servers
+   connected (so PyPI was reachable from there). That is one machine and one
+   user's settings on that date; a later managed-settings change could
+   block it. *Not yet checked there:* a tool call to each source. Starting a
+   server makes no request to its source, so the certificate question
+   (NASA-managed roots through the trust store) is still *assumed*; a call
+   to USAspending is the case to try, since its root was the one missing
+   from macOS's file. The test also reported that `/plugin` offered only
+   user scope in a new folder that wasn't a git repository. From the
+   command line, `--scope local` works in such a folder (checked here: it
+   writes only that folder's `.claude/settings.local.json`), and the README
+   now says so.
 3. ~~Contact fields in tool output.~~ **Decided 2026-09-30:** company and PI
    name by default, full contact details on request. See "SBIR contact data".
 4. ~~Plugin at the repo root or in a subdirectory.~~ **Decided 2026-09-30:**

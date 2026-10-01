@@ -58,6 +58,16 @@ claude plugin marketplace add tobedetermined/agent-techport-sources
 claude plugin install agent-techport-sources@agent-techport-sources
 ```
 
+This installs for you in every project (user scope). To use the plugin in one
+project folder only, run the install from inside that folder with
+`--scope local`; it then goes into that folder's `.claude/settings.local.json`.
+This works in a folder that isn't a git repository, where the `/plugin` menu
+may offer only user scope.
+
+```
+claude plugin install agent-techport-sources@agent-techport-sources --scope local
+```
+
 Or from a local copy of the repository (Claude Code then runs the plugin from
 that folder, so changes there take effect on the next start):
 
@@ -65,6 +75,16 @@ that folder, so changes there take effect on the next start):
 claude plugin marketplace add /path/to/agent-techport-sources
 claude plugin install agent-techport-sources@agent-techport-sources
 ```
+
+After installing, restart Claude Code and check that every source answers:
+
+```
+/agent-techport-sources:selfcheck
+```
+
+It makes one small request to each source and shows a table of what passed,
+with a hint for anything that failed. Add `sbir` to check SBIR too; its first
+use downloads about 395 MB.
 
 The first time a server starts, uv downloads its Python packages (the official
 MCP SDK, `truststore`, and what they depend on, 30 packages pinned in

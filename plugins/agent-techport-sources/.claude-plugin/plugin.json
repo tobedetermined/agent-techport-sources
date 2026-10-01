@@ -1,6 +1,6 @@
 {
   "name": "agent-techport-sources",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "Agent TechPort Sources: local MCP servers that call public government data sources directly (NASA TechPort, NTRS and Technology Transfer; SBIR; USAspending; SEC EDGAR). No third-party servers, no telemetry.",
   "author": {
     "name": "Claude Opus 5.5 and Alexander van Dijk"

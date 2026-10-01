@@ -20,7 +20,7 @@ for what it does, how to install it, and exactly what leaves your machine.
 | Path | What it is | Installed for users |
 |---|---|---|
 | `.claude-plugin/marketplace.json` | The repo is a Claude Code marketplace with one plugin | (catalogue only) |
-| `plugins/agent-techport-sources/` | The plugin: manifest, MCP servers, `pyproject.toml`, `uv.lock` | **yes, this folder only** |
+| `plugins/agent-techport-sources/` | The plugin: manifest, MCP servers, the `/agent-techport-sources:selfcheck` command, `pyproject.toml`, `uv.lock` | **yes, this folder only** |
 | `docs/design.md` | Decisions, the evidence behind them, measurements, open questions | no |
 | `tests/` | Tests (standard-library `unittest`) | no |
 | `research/` | One-off scripts behind the design note's numbers | no |
