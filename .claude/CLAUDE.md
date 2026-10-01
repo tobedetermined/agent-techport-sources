@@ -30,3 +30,34 @@ you have one, says where the last session left off and what comes next.
   reviewer has to audit.
 - `claude plugin validate .` must pass before any commit that touches the
   manifests.
+
+## Releasing
+
+Day-to-day work happens on a local `main` with its full history. The public
+repository (`github.com/tobedetermined/agent-techport-sources`) gets one
+commit per release, on the local branch `public`, which is the only thing
+ever pushed. No remote is configured, so nothing is pushed by accident.
+
+1. On `main`: bump the version in `plugin.json` and `pyproject.toml`
+   (`uv lock --offline` in the plugin folder), and the status line of
+   `docs/design.md`. Run the tests with the plugin's Python, with
+   `LIVE_TESTS=1`, and with a Python 3.11+ that has no MCP SDK; run
+   `claude plugin validate .`. Commit.
+2. Build the release commit on `public`: `main`'s tree without `log.md`,
+   with the current `public` as its parent, authored
+   `Alexander van Dijk <3953821+tobedetermined@users.noreply.github.com>`
+   (author and committer), and ending with
+   `Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>`. The message
+   says what changed since the last release.
+   ```
+   export GIT_INDEX_FILE=$(mktemp -u)
+   git read-tree main && git rm -q --cached log.md
+   TREE=$(git write-tree); unset GIT_INDEX_FILE
+   git branch -f public $(git commit-tree $TREE -p public -F message.txt)   # with GIT_AUTHOR_*/GIT_COMMITTER_* set
+   ```
+3. Check it from a fresh clone of `public`: no local paths, private
+   addresses or internal project names (`git grep`), `claude plugin validate .`,
+   and the tests after `uv sync --frozen`.
+4. Push only when Alexander says to:
+   `git push https://github.com/tobedetermined/agent-techport-sources.git public:main`.
+   Then tag `main` locally as `release-<version>` (tags aren't pushed).

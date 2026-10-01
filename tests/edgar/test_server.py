@@ -32,7 +32,8 @@ with open(os.path.join(FIXTURES, "edgar.json"), encoding="utf-8") as fh:
 with open(os.path.join(FIXTURES, "edgar_filing.html"), encoding="utf-8") as fh:
     FILING = fh.read()
 CONTACT = "Test Person test@example.com"
-CONTACT_VARS = ("SEC_CONTACT", "CLAUDE_PLUGIN_OPTION_SEC_CONTACT")
+CONTACT_VARS = ("SEC_CONTACT", "SEC_NAME", "SEC_EMAIL", "CLAUDE_PLUGIN_OPTION_SEC_NAME",
+                "CLAUDE_PLUGIN_OPTION_SEC_EMAIL")
 
 
 class FakeEdgar:
@@ -108,32 +109,44 @@ class NoContactTest(ServerCase):
 
     def test_every_tool_refuses_and_says_how_to_set_it(self):
         fake = self.use(FakeEdgar())
-        for value in (None, "${user_config.sec_contact}", "no email here"):
-            if value:
-                os.environ["SEC_CONTACT"] = value
+        for name, email in ((None, None), ("${user_config.sec_name}", "${user_config.sec_email}"), ("", "")):
+            for var, value in (("SEC_NAME", name), ("SEC_EMAIL", email)):
+                if value is not None:
+                    os.environ[var] = value
             for tool, kwargs in (("edgar_company", {"company": "EXRK"}), ("edgar_search", {"query": "NASA"}),
                                  ("edgar_financials", {"company": "EXRK"}),
                                  ("edgar_read_filing", {"cik": "9000001", "accession": "0009000001-25-000010"})):
-                with self.assertRaisesRegex(ToolError, "SEC requires.*/config"):
+                with self.assertRaisesRegex(ToolError, "^SEC requires a name and an email.*/plugin configure "
+                                                       "agent-techport-sources@agent-techport-sources.*restart"):
                     getattr(server, tool)(**kwargs)
         self.assertEqual(fake.calls, [])
 
-    def test_a_name_alone_is_named_as_the_problem(self):
+    def test_each_missing_or_wrong_option_is_named(self):
         self.use(FakeEdgar())
-        os.environ["CLAUDE_PLUGIN_OPTION_SEC_CONTACT"] = "Jane Doe"       # what a user typed at install
-        with self.assertRaisesRegex(ToolError, "set has no email address.*/config.*restart"):
+        os.environ["SEC_NAME"] = "Jane Doe"                                   # the email left empty
+        with self.assertRaisesRegex(ToolError, '"Your email address" option isn\'t set'):
             server.edgar_company(company="EXRK")
-        os.environ["CLAUDE_PLUGIN_OPTION_SEC_CONTACT"] = "Jane Doe jane@example.com\r\nX-Other: 1"
+        os.environ["SEC_EMAIL"] = "jane at example"
+        with self.assertRaisesRegex(ToolError, "doesn't look like an email address"):
+            server.edgar_company(company="EXRK")
+        os.environ["SEC_NAME"] = "Jane Doe\r\nX-Other: 1"
+        os.environ["SEC_EMAIL"] = "jane@example.com"
         with self.assertRaisesRegex(ToolError, "can't be sent"):
             server.edgar_company(company="EXRK")
-        os.environ["CLAUDE_PLUGIN_OPTION_SEC_CONTACT"] = ""                 # left empty at install
-        with self.assertRaisesRegex(ToolError, "^SEC requires a contact"):
-            server.edgar_company(company="EXRK")
 
-    def test_the_plugin_option_variable_works_too(self):
-        self.use(FakeEdgar())
-        os.environ["CLAUDE_PLUGIN_OPTION_SEC_CONTACT"] = CONTACT
+    def test_name_and_email_make_the_contact(self):
+        fake = self.use(FakeEdgar())
+        os.environ["SEC_NAME"], os.environ["SEC_EMAIL"] = " Jane  Doe ", "jane@example.com"
+        self.assertEqual(server._contact(), ("Jane Doe jane@example.com", None))
+        os.environ["SEC_NAME"] = ""                                           # the email alone will do
+        self.assertEqual(server._contact(), ("jane@example.com", None))
         self.assertEqual(self.call("edgar_company", company="EXRK")["company"]["cik"], 9000001)
+
+    def test_the_plugin_option_variables_work_too(self):
+        self.use(FakeEdgar())
+        os.environ["CLAUDE_PLUGIN_OPTION_SEC_NAME"] = "Jane Doe"
+        os.environ["CLAUDE_PLUGIN_OPTION_SEC_EMAIL"] = "jane@example.com"
+        self.assertEqual(server._contact(), ("Jane Doe jane@example.com", None))
 
 
 @unittest.skipIf(server is None, "needs the MCP SDK")

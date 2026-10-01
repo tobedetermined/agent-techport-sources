@@ -27,9 +27,9 @@ GROUNDING RULE: every claim about a company's filings or figures must come from
 a tool result; quote figures with their year and source. Use the counts that
 come with a search; don't tally hits yourself. If the tools can't answer, say so.
 
-- Every call needs the user's SEC EDGAR contact (name and email), a plugin
-  option. If a tool says it is missing or has no email, tell the user how to
-  set it, as the message says, before trying other EDGAR tools.
+- Every call needs the user's name and email address for SEC, two plugin
+  options. If a tool says they aren't set, tell the user how to set them, as
+  the message says, before trying other EDGAR tools.
 - Most SBIR companies are private and file little or nothing with the SEC.
   EDGAR helps most with public companies. EDGAR has no UEI, so link a company
   from the SBIR or USAspending tools by its name or ticker, and say when a
@@ -56,29 +56,41 @@ server = MCPServer(name="edgar", instructions=INSTRUCTIONS)
 edgar = None                    # made on first use, with the user's contact
 MAX_LIMIT = 50
 MAX_PASSAGE_HITS = 10           # documents fetched for one search's passages
-CONTACT_VARS = ("SEC_CONTACT", "CLAUDE_PLUGIN_OPTION_SEC_CONTACT")
-HOW_TO_SET = ("Set \"SEC EDGAR contact\" in Claude Code's /config, under this plugin's options, as your name "
-              "and email (Jane Doe jane@example.com), then restart Claude Code. It is sent only to SEC.")
-NO_CONTACT = "SEC requires a contact (your name and email) with every request to EDGAR. " + HOW_TO_SET
-NO_EMAIL = "The SEC EDGAR contact that is set has no email address, and SEC requires one. " + HOW_TO_SET
-UNUSABLE = ("The SEC EDGAR contact that is set can't be sent: it must be one line of plain Latin letters, "
-            "with an email address. " + HOW_TO_SET)
+CONFIGURE = "agent-techport-sources@agent-techport-sources"
+HOW_TO_SET = (f"Set them with /plugin configure {CONFIGURE} in Claude Code (or claude plugin configure "
+              f"{CONFIGURE} in a terminal), then restart Claude Code. Both are sent only to SEC.")
+NO_CONTACT = ("SEC requires a name and an email address with every request to EDGAR, and this plugin's "
+              "\"Your name\" and \"Your email address\" options aren't set. " + HOW_TO_SET)
+NO_EMAIL = ("This plugin's \"Your email address\" option isn't set, and SEC requires one with every request "
+            "to EDGAR. " + HOW_TO_SET)
+BAD_EMAIL = "This plugin's \"Your email address\" option doesn't look like an email address. " + HOW_TO_SET
+UNUSABLE = ("The name and email set for SEC can't be sent: they must be plain Latin letters on one line. "
+            + HOW_TO_SET)
 FRAMES = ("Years are SEC's calendar-year frames: for a fiscal year that doesn't end in December, the closest 12 "
           "months. Amounts in US dollars; cash and total assets at year end.")
 
 
+def _option(name):
+    """A plugin option as the server received it; one left unset arrives as ""
+    or as the unfilled "${user_config...}"."""
+    value = (os.environ.get(f"SEC_{name}") or os.environ.get(f"CLAUDE_PLUGIN_OPTION_SEC_{name}") or "").strip()
+    return "" if "${" in value else value
+
+
 def _contact():
-    """(contact, problem): the first usable contact, or None and the message
-    that says what is wrong with the one that is set, if any."""
-    problem = NO_CONTACT
-    for name in CONTACT_VARS:
-        value = os.environ.get(name)
-        found = model.contact(value)
-        if found:
-            return found, None
-        if value and value.strip() and "${" not in value:      # set, but not usable
-            problem = NO_EMAIL if "@" not in value else UNUSABLE
-    return None, problem
+    """(contact, problem): the contact to send SEC, from the name and email
+    options, or None and the message saying what to set. SEC_CONTACT, one
+    line with both, overrides them (for tests and development)."""
+    override = model.contact(os.environ.get("SEC_CONTACT"))
+    if override:
+        return override, None
+    name, email = _option("NAME"), _option("EMAIL")
+    if not email:
+        return None, NO_EMAIL if name else NO_CONTACT
+    if not re.fullmatch(r"[^\s@]+@[^\s@]+\.[^\s@]+", email):
+        return None, BAD_EMAIL
+    found = model.contact(f"{name} {email}")
+    return (found, None) if found else (None, UNUSABLE)
 
 
 def _client():

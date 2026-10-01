@@ -1,6 +1,6 @@
 # Agent TechPort Sources: design note
 
-Status: **in development, plugin version 0.1.1.** The SBIR, TechPort and
+Status: **in development, plugin version 0.1.2.** The SBIR, TechPort and
 USAspending servers are built and tested; the other three sources are planned. Decisions and
 evidence date from 2026-09-30. Every number below was measured unless it is
 marked *assumed*.
@@ -1395,7 +1395,9 @@ decision.
 
 Decided with the user, one at a time:
 - Written fresh, from this probe.
-- **Each user's contact is an optional plugin setting** (`userConfig`),
+- **Each user's contact is an optional plugin setting** (`userConfig`;
+  since 2026-10-01 two settings, `sec_name` and `sec_email`, because one
+  "name and email" field was saved with the name only in the field test),
   asked for when the plugin is enabled and changeable in `/config`. Users
   who never need EDGAR can skip it; the EDGAR tools then refuse and say how
   to set it. It is stored in the user's Claude Code settings, sent only to
@@ -1429,7 +1431,7 @@ Shared changes made for it:
   Tables read as rows ("Total revenues | 601,799 | 436,214 | 244,592"), and
   nothing from the hidden XBRL header comes through.
 - **The contact setting reaches the server.** Claude Code fills in
-  `${user_config.sec_contact}` from `pluginConfigs["<plugin>@<marketplace>"].options`
+  `${user_config.sec_contact}` (now `sec_name` and `sec_email`) from `pluginConfigs["<plugin>@<marketplace>"].options`
   (`@inline` for a plugin loaded with `--plugin-dir`). It reads that from
   user settings, `--settings` or managed settings, not from a project's
   settings; an unset option arrives as an empty string. Verified for
@@ -1713,6 +1715,20 @@ advice, not a tool problem.
      downloaded only to be left for later (now only while 1 MB is left). Of
      three style notes, two were applied; the third (two servers each keep a
      three-line row helper) was left, to keep the servers independent.
+   - **Published 2026-10-01** as `tobedetermined/agent-techport-sources`
+     (public, Apache-2.0): one commit, `ff601ff`, of `main` without
+     `log.md`, authored "Alexander van Dijk" with his GitHub noreply address
+     and a `Co-Authored-By: Claude Opus 5.5` trailer. The full history is on
+     the local branch `full-history`; no remote is configured locally.
+   - **Install from GitHub, checked the same day** in a throwaway Claude Code
+     config: `marketplace add tobedetermined/agent-techport-sources`, then
+     `install`. Only the plugin folder was copied to the cache
+     (`.../cache/agent-techport-sources/agent-techport-sources/0.1.1/`), uv
+     built the environment there, and each server, started with
+     `plugin.json`'s exact command from the cache, answered a live call
+     (EDGAR refused, correctly, with no contact set; SBIR's 395 MB first
+     download wasn't triggered). *Not yet seen:* a Claude Code session
+     running the plugin from the cache.
 2. **NASA marketplace allowlist.** Managed Claude Code settings
    (`strictKnownMarketplaces`) can stop users adding GitHub marketplaces. Find
    out whether NASA's deployment sets this.

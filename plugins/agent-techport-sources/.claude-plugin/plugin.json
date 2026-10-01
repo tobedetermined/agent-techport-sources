@@ -1,6 +1,6 @@
 {
   "name": "agent-techport-sources",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Agent TechPort Sources: local MCP servers that call public government data sources directly (NASA TechPort, NTRS and Technology Transfer; SBIR; USAspending; SEC EDGAR). No third-party servers, no telemetry.",
   "author": {
     "name": "Claude Opus 5.5 and Alexander van Dijk"
@@ -17,10 +17,16 @@
     "research"
   ],
   "userConfig": {
-    "sec_contact": {
+    "sec_name": {
       "type": "string",
-      "title": "SEC EDGAR contact",
-      "description": "Your name and email, e.g. Jane Doe jane@example.com. SEC requires one with every request to EDGAR; it is sent only to SEC. Leave it empty if you won't use the EDGAR tools.",
+      "title": "Your name, for SEC EDGAR",
+      "description": "SEC asks every program that reads EDGAR to send a name and an email address. Both are sent only to SEC. Leave empty if you won't use the EDGAR tools.",
+      "required": false
+    },
+    "sec_email": {
+      "type": "string",
+      "title": "Your email address, for SEC EDGAR",
+      "description": "Needed for the EDGAR tools; sent only to SEC. Leave empty if you won't use them.",
       "required": false
     }
   },
@@ -103,7 +109,8 @@
         "servers.edgar"
       ],
       "env": {
-        "SEC_CONTACT": "${user_config.sec_contact}"
+        "SEC_NAME": "${user_config.sec_name}",
+        "SEC_EMAIL": "${user_config.sec_email}"
       }
     }
   }

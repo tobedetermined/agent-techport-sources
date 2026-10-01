@@ -33,8 +33,8 @@ work.
   `curl -LsSf https://astral.sh/uv/install.sh | sh` (macOS and Linux), or see
   the uv docs for Windows. uv finds or installs Python 3.11+ itself.
 - **Outbound HTTPS** to the hosts listed under "What leaves your machine".
-- **For the SEC EDGAR tools only, your name and email.** SEC requires a
-  contact with every request; see "SEC EDGAR" below.
+- **For the SEC EDGAR tools only, your name and email address.** SEC
+  requires them with every request; see "SEC EDGAR" below.
 - **Disk space:**
   - SBIR: about 0.7 GB, rising briefly to about 1.8 GB during its monthly
     refresh.
@@ -80,7 +80,7 @@ about 1.3 s on a fast connection.
 | `api.usaspending.gov` | Every USAspending question | Your search words and filters, award numbers and company UEIs |
 | `ntrs.nasa.gov` | Every NTRS question | Your search words and filters, and record ids; the files you ask for are downloaded from it |
 | `technology.nasa.gov` | Every NASA Technology Transfer question | Your search words, each sent on its own, and reference numbers; for one patent, its web page is downloaded |
-| `www.sec.gov`, `data.sec.gov`, `efts.sec.gov` | Every SEC EDGAR question | Your search words, company names, tickers and ids, and filing numbers; and, in every request, the contact you set for SEC |
+| `www.sec.gov`, `data.sec.gov`, `efts.sec.gov` | Every SEC EDGAR question | Your search words, company names, tickers and ids, and filing numbers; and, in every request, the name and email you set for SEC |
 | `pypi.org`, `files.pythonhosted.org` | Install and update only | Package downloads by uv |
 | `releases.astral.sh` | Install only, and only if no Python 3.11+ is found | uv downloading Python. To prevent it, install Python 3.11+ yourself first, or set `UV_PYTHON_DOWNLOADS=never` |
 
@@ -212,13 +212,16 @@ OpenTelemetry SDK and exporter, and this plugin includes neither.
 ### SEC EDGAR: `edgar_*` tools
 
 - **Data:** live from SEC's EDGAR. There's no local copy.
-- **Your contact:** SEC requires every client to identify itself with a name
-  and email. The plugin asks for this as an optional setting, "SEC EDGAR
-  contact", when you enable it. You can change it later in `/config`, under
-  the plugin's options. It is stored in your Claude Code settings and sent
-  only to SEC, in each request's User-Agent header. Leave it empty if you
-  won't use EDGAR: the EDGAR tools then say how to set it, and send
-  nothing.
+- **Your name and email:** SEC requires every client to identify itself
+  with a name and an email address. The plugin asks for them as two optional
+  settings when you enable it, "Your name, for SEC EDGAR" and "Your email
+  address, for SEC EDGAR". To change them later, run
+  `/plugin configure agent-techport-sources@agent-techport-sources` in
+  Claude Code (or `claude plugin configure ...` in a terminal), then
+  restart Claude Code. They are stored in your Claude Code settings and
+  sent only to SEC, in each request's User-Agent header. Leave them empty
+  if you won't use EDGAR: the EDGAR tools then say how to set them, and
+  send nothing.
 - **Tools:**
   - `edgar_company`: a company by name, ticker or SEC id: its profile and
     recent filings by form.
@@ -248,7 +251,7 @@ you ask for them.
 - **Downloaded data:** Claude Code's plugin data folder,
   `~/.claude/plugins/data/<plugin id>/`, with `sbir/` and `techport/` inside.
   Claude Code deletes it when you uninstall the plugin.
-- **Your SEC contact,** if you set one: in your Claude Code user settings
+- **Your name and email for SEC,** if you set them: in your Claude Code user settings
   (under `pluginConfigs`), not in the plugin's folder.
 - **Oversized documents:** a TechPort or NTRS file too large to attach
   (11–20 MB) is saved under `techport/files/` or `ntrs/files/` there, and the
