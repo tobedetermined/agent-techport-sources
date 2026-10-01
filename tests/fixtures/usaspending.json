@@ -1,0 +1,97 @@
+{
+  "_about": "Made-up USAspending API responses in the API's own shapes (probed 2026-09-30). Companies, people, numbers and ids are invented.",
+  "toptier_agencies": {"results": [
+    {"abbreviation": "NASA", "agency_name": "National Aeronautics and Space Administration", "toptier_code": "080"},
+    {"abbreviation": "DOD", "agency_name": "Department of Defense", "toptier_code": "097"}
+  ]},
+  "last_updated": {"last_updated": "09/30/2026"},
+  "award_contract": {
+    "id": 1001, "generated_unique_award_id": "CONT_AWD_TESTNASA0001_8000_-NONE-_-NONE-", "piid": "TESTNASA0001",
+    "category": "contract", "type": "D", "type_description": "DEFINITIVE CONTRACT",
+    "description": "SBIR PHASE III - EXAMPLE CRYOCOOLER FLIGHT UNIT",
+    "total_obligation": 1250000.0, "subaward_count": 2, "total_subaward_amount": 300000.0, "date_signed": "2024-05-01",
+    "base_exercised_options": 1250000.0, "base_and_all_options": 2000000.0, "total_account_outlay": 900000.0,
+    "total_account_obligation": 1250000.0, "account_outlays_by_defc": [], "account_obligations_by_defc": [],
+    "parent_award": null,
+    "latest_transaction_contract_data": {"extent_competed": "D", "type_set_aside": "SBA",
+      "type_set_aside_description": "SMALL BUSINESS SET ASIDE - TOTAL", "solicitation_identifier": "TEST-SOL-1"},
+    "funding_agency": {"id": 1, "has_agency_page": true,
+      "toptier_agency": {"name": "National Aeronautics and Space Administration", "code": "080", "abbreviation": "NASA", "slug": "x"},
+      "subtier_agency": {"name": "National Aeronautics and Space Administration", "code": "8000", "abbreviation": "NASA"},
+      "office_agency_name": "EXAMPLE SPACE FLIGHT CENTER"},
+    "awarding_agency": {"id": 1, "has_agency_page": true,
+      "toptier_agency": {"name": "National Aeronautics and Space Administration", "code": "080", "abbreviation": "NASA", "slug": "x"},
+      "subtier_agency": {"name": "National Aeronautics and Space Administration", "code": "8000", "abbreviation": "NASA"},
+      "office_agency_name": "NASA SHARED SERVICES CENTER"},
+    "period_of_performance": {"start_date": "2024-05-01", "end_date": "2026-04-30", "last_modified_date": "2025-01-10",
+      "potential_end_date": "2027-04-30 00:00:00"},
+    "recipient": {"recipient_hash": "aaaa-C", "recipient_name": "EXAMPLE CRYO SYSTEMS INC", "recipient_uei": "EXMPLCRY0001",
+      "recipient_unique_id": null, "parent_recipient_hash": "aaaa-P", "parent_recipient_name": "EXAMPLE HOLDINGS LLC",
+      "parent_recipient_uei": "EXMPLHLD0001", "parent_recipient_unique_id": null,
+      "business_categories": ["Category Business", "Small Business"],
+      "location": {"city_name": "TESTVILLE", "state_code": "CA", "country_name": "UNITED STATES"}},
+    "executive_details": {"officers": [{"name": "TEST EXECUTIVE ONE", "amount": 250000.0}]},
+    "place_of_performance": {"location_country_code": "USA", "country_name": "UNITED STATES", "city_name": "TESTVILLE",
+      "state_code": "CA", "state_name": "CALIFORNIA", "zip5": "00000"},
+    "psc_hierarchy": {"toptier_code": {"code": "A", "description": "RESEARCH AND DEVELOPMENT"},
+      "midtier_code": {"code": "AR", "description": "SPACE R&D SERVICES"}, "subtier_code": {},
+      "base_code": {"code": "AR12", "description": "SPACE R&D SERVICES; APPLIED RESEARCH"}},
+    "naics_hierarchy": {"toptier_code": {"code": "54", "description": "PROFESSIONAL SERVICES"},
+      "midtier_code": {"code": "5417", "description": "SCIENTIFIC R&D"},
+      "base_code": {"code": "541715", "description": "R&D IN THE PHYSICAL AND ENGINEERING SCIENCES"}},
+    "total_outlay": 900000.0
+  },
+  "award_grant": {
+    "id": 2001, "generated_unique_award_id": "ASST_NON_TESTGRANT0001_8000", "fain": "TESTGRANT0001", "uri": null,
+    "category": "grant", "type": "04", "type_description": "PROJECT GRANT",
+    "description": "EXAMPLE LUNAR REGOLITH RESEARCH", "subaward_count": 0, "total_subaward_amount": null,
+    "total_obligation": 500000.0, "non_federal_funding": 50000.0, "total_funding": 550000.0, "date_signed": "2023-09-01",
+    "total_outlay": 400000.0, "record_type": 2,
+    "cfda_info": [{"cfda_number": "43.012", "cfda_title": "Space Technology", "cfda_objectives": "long text",
+      "federal_action_obligation_amount": 500000.0}],
+    "funding_agency": {"toptier_agency": {"name": "National Aeronautics and Space Administration", "abbreviation": "NASA"},
+      "subtier_agency": {"name": "National Aeronautics and Space Administration"}, "office_agency_name": "EXAMPLE RESEARCH CENTER"},
+    "awarding_agency": {"toptier_agency": {"name": "National Aeronautics and Space Administration", "abbreviation": "NASA"},
+      "subtier_agency": {"name": "National Aeronautics and Space Administration"}, "office_agency_name": "EXAMPLE RESEARCH CENTER"},
+    "period_of_performance": {"start_date": "2023-09-01", "end_date": "2026-08-31", "last_modified_date": "2024-02-01"},
+    "recipient": {"recipient_hash": "bbbb-C", "recipient_name": "EXAMPLE STATE UNIVERSITY", "recipient_uei": "EXMPLUNI0001",
+      "parent_recipient_name": null, "parent_recipient_uei": null, "business_categories": ["Higher Education"],
+      "location": {"city_name": "COLLEGETOWN", "state_code": "OH", "country_name": "UNITED STATES"}},
+    "executive_details": {"officers": []},
+    "place_of_performance": {"city_name": "COLLEGETOWN", "state_code": "OH", "country_name": "UNITED STATES"}
+  },
+  "transactions": {"page_metadata": {"page": 1, "next": null, "hasNext": false}, "results": [
+    {"id": "CONT_TX_1", "type": "D", "type_description": "DEFINITIVE CONTRACT", "action_date": "2025-01-10", "action_type": "C",
+     "action_type_description": "FUNDING ONLY ACTION", "modification_number": "P00002", "description": "INCREMENTAL FUNDING",
+     "federal_action_obligation": 250000.0, "face_value_loan_guarantee": null, "original_loan_subsidy_cost": null},
+    {"id": "CONT_TX_0", "type": "D", "type_description": "DEFINITIVE CONTRACT", "action_date": "2024-05-01", "action_type": null,
+     "action_type_description": null, "modification_number": "0", "description": "SBIR PHASE III - EXAMPLE CRYOCOOLER FLIGHT UNIT",
+     "federal_action_obligation": 1000000.0, "face_value_loan_guarantee": null, "original_loan_subsidy_cost": null}
+  ]},
+  "subawards": {"page_metadata": {"page": 1, "next": null, "hasNext": false}, "results": [
+    {"id": 1, "subaward_number": "SUB-1", "description": "VACUUM HOUSING", "action_date": "2024-07-01", "amount": 200000.0,
+     "recipient_name": "EXAMPLE MACHINE SHOP"},
+    {"id": 2, "subaward_number": "SUB-2", "description": "TEST SUPPORT", "action_date": "2024-09-01", "amount": 100000.0,
+     "recipient_name": "EXAMPLE TEST LAB"}
+  ]},
+  "recipients": {"page_metadata": {"page": 1, "total": 3, "hasNext": false}, "results": [
+    {"id": "aaaa-P", "duns": null, "uei": "EXMPLCRY0001", "name": "EXAMPLE CRYO SYSTEMS INC", "recipient_level": "P", "amount": 3000000.0},
+    {"id": "aaaa-C", "duns": null, "uei": "EXMPLCRY0001", "name": "EXAMPLE CRYO SYSTEMS INC", "recipient_level": "C", "amount": 3000000.0},
+    {"id": "aaaa-R", "duns": null, "uei": "EXMPLCRY0001", "name": "EXAMPLE CRYO SYSTEMS INC", "recipient_level": "R", "amount": 1000.0}
+  ]},
+  "recipient_profile": {"name": "EXAMPLE CRYO SYSTEMS INC", "alternate_names": ["EXAMPLE CRYO"], "duns": null,
+    "uei": "EXMPLCRY0001", "recipient_id": "aaaa-C", "recipient_level": "C", "parent_id": "aaaa-P",
+    "parent_name": "EXAMPLE HOLDINGS LLC", "parent_duns": null, "parent_uei": "EXMPLHLD0001", "parents": [],
+    "business_types": ["small_business", "woman_owned_business"],
+    "location": {"city_name": "TESTVILLE", "state_code": "CA", "country_name": "UNITED STATES"},
+    "total_transaction_amount": 3000000.0, "total_transactions": 12,
+    "total_face_value_loan_amount": 0.0, "total_face_value_loan_transactions": 0},
+  "by_agency": {"category": "awarding_agency", "page_metadata": {"page": 1, "hasNext": false}, "results": [
+    {"id": 1, "code": "DOD", "name": "Department of Defense", "amount": 2000000.0, "agency_slug": "x", "total_outlays": null},
+    {"id": 2, "code": "NASA", "name": "National Aeronautics and Space Administration", "amount": 1000000.0, "agency_slug": "y", "total_outlays": null}
+  ]},
+  "over_time": {"group": "fiscal_year", "results": [
+    {"time_period": {"fiscal_year": "2024"}, "aggregated_amount": 1000000.0, "Contract_Obligations": 1000000.0},
+    {"time_period": {"fiscal_year": "2025"}, "aggregated_amount": 2000000.0, "Contract_Obligations": 2000000.0}
+  ]}
+}

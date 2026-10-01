@@ -1,0 +1,15 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "agent-techport-sources",
+  "description": "Grounded access to public NASA space technology research data: TechPort, NTRS, USAspending, NASA Technology Transfer, SEC EDGAR and SBIR.",
+  "owner": {
+    "name": "Alexander van Dijk"
+  },
+  "plugins": [
+    {
+      "name": "agent-techport-sources",
+      "description": "Agent TechPort Sources: local MCP servers that call public government data sources directly.",
+      "source": "./plugins/agent-techport-sources"
+    }
+  ]
+}

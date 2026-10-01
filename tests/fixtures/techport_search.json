@@ -1,0 +1,261 @@
+{
+ "results": [
+  {
+   "projectId": 900001,
+   "title": "Zero-Boil-Off Test Tank",
+   "acronym": "ZBOT",
+   "status": "Active",
+   "program": {
+    "title": "Small Business Innovation Research/Small Business Tech Transfer",
+    "acronym": "SBIR/STTR",
+    "program_id": 73,
+    "responsible_md_acronym": "STMD"
+   },
+   "responsibleMd": {
+    "acronym": "STMD",
+    "organization_id": 4875,
+    "organization_name": "Space Technology Mission Directorate"
+   },
+   "phase": "2",
+   "startDate": "2024-05-01T00:00:00Z",
+   "endDate": "2026-04-30T00:00:00Z",
+   "modifiedDate": "2026-09-01T12:00:00Z",
+   "trlBegin": 3,
+   "trlCurrent": 4,
+   "trlEnd": 5,
+   "primaryTx": {
+    "code": "TX14.1.1",
+    "title": "In-Space Propellant Storage and Use"
+   },
+   "additionalTxs": [
+    {
+     "code": "TX14.1",
+     "title": "Cryogenic Systems"
+    }
+   ],
+   "destinationTypes": [
+    "Moon and Cislunar",
+    "Mars"
+   ],
+   "leadOrganization": {
+    "city": "Testville",
+    "acronym": null,
+    "country_id": 236,
+    "state_name": "Test",
+    "duns_number": "000000001",
+    "country_name": "United States",
+    "msi_category": null,
+    "set_aside_type": "[\"Small Disadvantaged Business (SDB)\", \"Women-Owned Small Business (WOSB)\"]",
+    "organization_id": 1,
+    "organization_name": "Example Cryo Systems, Inc.",
+    "organization_role": "Lead Organization",
+    "organization_type": "Industry",
+    "state_abbreviation": "CA",
+    "state_territory_id": 1,
+    "academic_degree_type": null
+   },
+   "otherOrganizations": [
+    {
+     "city": "Testville",
+     "acronym": null,
+     "country_id": 236,
+     "state_name": "Test",
+     "duns_number": null,
+     "country_name": "United States",
+     "msi_category": null,
+     "set_aside_type": null,
+     "organization_id": 2,
+     "organization_name": "Example Space Center",
+     "organization_role": "Supporting Organization",
+     "organization_type": "NASA Center",
+     "state_abbreviation": "OH",
+     "state_territory_id": 1,
+     "academic_degree_type": null
+    }
+   ],
+   "states": [
+    {
+     "name": "California",
+     "abbreviation": "CA"
+    }
+   ],
+   "description": "<p>A <b>cryogenic</b> tank that keeps liquid hydrogen for months &amp; more.</p>",
+   "benefits": "<p>Less propellant lost.</p>",
+   "projectContacts": [
+    {
+     "email": "jane@example.com",
+     "orcid": null,
+     "full_name": "Jane Q Tester",
+     "project_contact_role": "Principal Investigator"
+    }
+   ],
+   "programContacts": [
+    {
+     "email": "pm@example.com",
+     "orcid": null,
+     "full_name": "Pat M Manager",
+     "program_contact_role": "Program Director"
+    }
+   ],
+   "technologyOutcomes": [],
+   "viewCount": 10,
+   "libraryItems": [
+    {
+     "url": null,
+     "title": "Briefing Chart",
+     "file_id": 800001,
+     "file_name": "BRIEFING_CHART",
+     "library_item_type": "Document"
+    },
+    {
+     "url": "https://www.example.com/story",
+     "title": "News story",
+     "file_id": null,
+     "library_item_type": "Link"
+    }
+   ],
+   "closeoutDocumentation": [
+    {
+     "title": "Final Summary Chart",
+     "file_id": 800002,
+     "file_name": "final",
+     "closeout_type": "Closeout Document",
+     "closeout_link_url": null
+    }
+   ]
+  },
+  {
+   "projectId": 900002,
+   "title": "Lunar Regolith Test Rover",
+   "acronym": null,
+   "status": "Completed",
+   "program": {
+    "title": "Flight Opportunities",
+    "acronym": "FO",
+    "program_id": 64,
+    "responsible_md_acronym": "STMD"
+   },
+   "phase": null,
+   "startDate": "2019-01-15T00:00:00Z",
+   "endDate": "2021-01-14T00:00:00Z",
+   "modifiedDate": "2025-02-02T00:00:00Z",
+   "trlBegin": 2,
+   "trlCurrent": 0,
+   "trlEnd": 4,
+   "primaryTx": {
+    "code": "TX07.1.3",
+    "title": "Resource Processing for Production of Mission Consumables"
+   },
+   "additionalTxs": [],
+   "destinationTypes": [
+    "Moon and Cislunar"
+   ],
+   "leadOrganization": {
+    "city": "Testville",
+    "acronym": null,
+    "country_id": 236,
+    "state_name": "Test",
+    "duns_number": null,
+    "country_name": "United States",
+    "msi_category": [
+     "Hispanic Serving Institutions (HSI)"
+    ],
+    "set_aside_type": null,
+    "organization_id": 3,
+    "organization_name": "Example University",
+    "organization_role": "Lead Organization",
+    "organization_type": "Academia",
+    "state_abbreviation": "TX",
+    "state_territory_id": 1,
+    "academic_degree_type": null
+   },
+   "otherOrganizations": [],
+   "states": [
+    {
+     "name": "Texas",
+     "abbreviation": "TX"
+    }
+   ],
+   "description": "Digs regolith.",
+   "benefits": null,
+   "projectContacts": [
+    {
+     "email": null,
+     "orcid": "0000-0000-0000-0001",
+     "full_name": "Jane Q Tester",
+     "project_contact_role": "Co-Investigator"
+    }
+   ],
+   "programContacts": [],
+   "viewCount": 5,
+   "libraryItems": [],
+   "technologyOutcomes": [
+    {
+     "details": null,
+     "path_type": "Transitioned",
+     "organization_id": null,
+     "organization_name": null,
+     "related_project_id": 900001,
+     "technology_outcome_date": "2021-01-14",
+     "technology_outcome_path": "Advanced To another project",
+     "technology_outcome_partner": null
+    }
+   ]
+  },
+  {
+   "projectId": 900003,
+   "title": "Earth Sensor Test",
+   "acronym": null,
+   "status": "Canceled",
+   "program": {
+    "title": "Game Changing Development",
+    "acronym": "GCD",
+    "program_id": 60,
+    "responsible_md_acronym": "STMD"
+   },
+   "phase": null,
+   "startDate": "2022-10-01T00:00:00Z",
+   "endDate": null,
+   "modifiedDate": "2023-03-03T00:00:00Z",
+   "trlBegin": null,
+   "trlCurrent": 6,
+   "trlEnd": null,
+   "primaryTx": {
+    "code": "TX08.1.1",
+    "title": "Detectors and Focal Planes"
+   },
+   "additionalTxs": [],
+   "destinationTypes": null,
+   "leadOrganization": {
+    "city": "Testville",
+    "acronym": null,
+    "country_id": 236,
+    "state_name": "Test",
+    "duns_number": null,
+    "country_name": "United States",
+    "msi_category": null,
+    "set_aside_type": null,
+    "organization_id": 2,
+    "organization_name": "Example Space Center",
+    "organization_role": "Lead Organization",
+    "organization_type": "NASA Center",
+    "state_abbreviation": "OH",
+    "state_territory_id": 1,
+    "academic_degree_type": null
+   },
+   "otherOrganizations": [],
+   "states": [],
+   "description": "A sensor.",
+   "benefits": null,
+   "projectContacts": [],
+   "programContacts": [],
+   "viewCount": 1,
+   "libraryItems": [],
+   "technologyOutcomes": []
+  }
+ ],
+ "stats": {},
+ "total": 3,
+ "offset": 0,
+ "spellingSuggestions": []
+}

@@ -1,0 +1,110 @@
+{
+  "name": "agent-techport-sources",
+  "version": "0.1.1",
+  "description": "Agent TechPort Sources: local MCP servers that call public government data sources directly (NASA TechPort, NTRS and Technology Transfer; SBIR; USAspending; SEC EDGAR). No third-party servers, no telemetry.",
+  "author": {
+    "name": "Claude Opus 5.5 and Alexander van Dijk"
+  },
+  "license": "Apache-2.0",
+  "keywords": [
+    "nasa",
+    "sbir",
+    "techport",
+    "ntrs",
+    "usaspending",
+    "technology transfer",
+    "edgar",
+    "research"
+  ],
+  "userConfig": {
+    "sec_contact": {
+      "type": "string",
+      "title": "SEC EDGAR contact",
+      "description": "Your name and email, e.g. Jane Doe jane@example.com. SEC requires one with every request to EDGAR; it is sent only to SEC. Leave it empty if you won't use the EDGAR tools.",
+      "required": false
+    }
+  },
+  "mcpServers": {
+    "sbir": {
+      "command": "uv",
+      "args": [
+        "run",
+        "--quiet",
+        "--frozen",
+        "--directory",
+        "${CLAUDE_PLUGIN_ROOT}",
+        "python",
+        "-m",
+        "servers.sbir"
+      ]
+    },
+    "techport": {
+      "command": "uv",
+      "args": [
+        "run",
+        "--quiet",
+        "--frozen",
+        "--directory",
+        "${CLAUDE_PLUGIN_ROOT}",
+        "python",
+        "-m",
+        "servers.techport"
+      ]
+    },
+    "usaspending": {
+      "command": "uv",
+      "args": [
+        "run",
+        "--quiet",
+        "--frozen",
+        "--directory",
+        "${CLAUDE_PLUGIN_ROOT}",
+        "python",
+        "-m",
+        "servers.usaspending"
+      ]
+    },
+    "ntrs": {
+      "command": "uv",
+      "args": [
+        "run",
+        "--quiet",
+        "--frozen",
+        "--directory",
+        "${CLAUDE_PLUGIN_ROOT}",
+        "python",
+        "-m",
+        "servers.ntrs"
+      ]
+    },
+    "techtransfer": {
+      "command": "uv",
+      "args": [
+        "run",
+        "--quiet",
+        "--frozen",
+        "--directory",
+        "${CLAUDE_PLUGIN_ROOT}",
+        "python",
+        "-m",
+        "servers.techtransfer"
+      ]
+    },
+    "edgar": {
+      "command": "uv",
+      "args": [
+        "run",
+        "--quiet",
+        "--frozen",
+        "--directory",
+        "${CLAUDE_PLUGIN_ROOT}",
+        "python",
+        "-m",
+        "servers.edgar"
+      ],
+      "env": {
+        "SEC_CONTACT": "${user_config.sec_contact}"
+      }
+    }
+  }
+}

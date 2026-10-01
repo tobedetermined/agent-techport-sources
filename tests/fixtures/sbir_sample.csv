@@ -1,0 +1,10 @@
+Company,Award Title,Agency,Branch,Phase,Program,Agency Tracking Number,Contract,Proposal Award Date,Contract End Date,Solicitation Number,Solicitation Year,Solicitation Close Date,Proposal Receipt Date,Date of Notification,Topic Code,Award Year,Award Amount,UEI,Duns,HUBZone Owned,Socially and Economically Disadvantaged,Woman Owned,Number Employees,Company Website,Address1,Address2,City,State,Zip,Abstract,Contact Name,Contact Title,Contact Phone,Contact Email,PI Name,PI Title,PI Phone,PI Email,RI Name,RI POC Name,RI POC Phone
+"Example Cryo Systems, Inc.",Zero-Boil-Off Cryogenic Tank,National Aeronautics and Space Administration,,Phase I,SBIR,T1.01-1001,TEST-NASA-0001 ,,,,,,,,,2024,150000.0000,EXMPLCRY0001,,N,N,N,,,,,Pasadena,California,91101,"A ""zero-boil-off"" cryogenic
+propellant tank for lunar surface use.
+
+Second paragraph.",,,,,Jane  Doe,,() -,jane@example.com,,,
+Example Orbital LLC,Lunar Regolith Excavator,National Aeronautics and Space Administration,,Phase II,STTR,T4.02-2002,TEST-NASA-0002,2023-05-01,,,,,,,,2023,750000.0000,EXMPLORB0002,,N,N,N,,,,,,Guam,-,Excavation of lunar regolith.,,,,,,,,,Example University,,
+Example Orbital LLC,Lunar Regolith Excavator,National Aeronautics and Space Administration,,Phase II,STTR,T4.02-2002,TEST-NASA-0002,,,,,,,,,2024,250000.0000,EXMPLORB0002,,N,N,N,,,,,,Guam,,"Excavation of lunar regolith, extension.",,,,,,,,,,,
+Broken Row Inc,too few fields
+Example Defense Co,Radar Thing,Department of Defense,Air Force,Phase I,SBIR,,TEST-DOD-0003,,,,,,,,,2024,,EXMPLDEF0003,,N,N,N,,,,,,,,,,,,,,,,,,,
+  Example   Bio  ,Assay,Department of Magic,,Phase III,SBIR,,,,,,,,,,,2025,100000.0000,,,N,N,N,12,,,,,Atlantis,,,,,,,,,,,,,

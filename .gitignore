@@ -1,0 +1,11 @@
+# Local-only Claude Code settings (privacy block; never commit)
+.claude/settings.local.json
+# Downloaded and derived data
+*.csv
+*.db
+data/
+.venv/
+__pycache__/
+
+# Small hand-made test inputs are committed
+!tests/fixtures/*.csv

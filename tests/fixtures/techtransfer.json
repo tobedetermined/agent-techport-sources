@@ -1,0 +1,41 @@
+{
+  "_about": "Made-up NASA Technology Transfer API responses in the API's own shape (probed 2026-09-30): each result is an array of 13 values by position. Titles, numbers, companies and ids are invented. Keyed by kind, then by search word.",
+  "patent": {
+    "cryogenic": [
+      ["aaaaaaaaaaaaaaaaaaaa0001", "KSC-TOPS-901", "<span class=\"highlight\">Cryogenic</span> Example Coating", "Thermal coatings for <span class=\"highlight\">cryogenic</span> tanks reflect sunlight &amp; keep propellant cold.", "KSC-TOPS-901", "Materials and Coatings", "", "", "", "KSC", "https://technology.nasa.gov/t2media/tops/img/KSC-TOPS-901/example.jpg", "", 16.5],
+      ["aaaaaaaaaaaaaaaaaaaa0002", "LEW-TOPS-902", "Example Insulation Blanket", "A blanket that keeps <span class=\"highlight\">cryogenic</span> fluids cold.", "LEW-TOPS-902", "materials and coatings", "", "", "", "GRC", "", "insulation materials", 12.0],
+      ["aaaaaaaaaaaaaaaaaaaa0003", "LAR-TOPS-903", "Example Valve Seal", "A valve seal for low temperatures.", "LAR-TOPS-903", "Mechanical and Fluid Systems", "", "", "", "LARC", "", "", 7.5]
+    ],
+    "tank": [
+      ["aaaaaaaaaaaaaaaaaaaa0002", "LEW-TOPS-902", "Example Insulation Blanket", "A blanket for <span class=\"highlight\">tank</span> walls.", "LEW-TOPS-902", "materials and coatings", "", "", "", "GRC", "", "insulation materials", 9.0],
+      ["aaaaaaaaaaaaaaaaaaaa0004", "TOP2-904", "Example Tank Gauge", "Measures what is left in a <span class=\"highlight\">tank</span>.", "TOP2-904", "Sensors", "", "", "", "DFRC", "", "", 8.0]
+    ],
+    "KSC-TOPS-901": [
+      ["aaaaaaaaaaaaaaaaaaaa0001", "KSC-TOPS-901", "Cryogenic Example Coating", "Thermal coatings for cryogenic tanks reflect sunlight &amp; keep propellant cold.", "KSC-TOPS-901", "Materials and Coatings", "", "", "", "KSC", "https://technology.nasa.gov/t2media/tops/img/KSC-TOPS-901/example.jpg", "", 20.0],
+      ["aaaaaaaaaaaaaaaaaaaa0005", "KSC-TOPS-9011", "Another Example", "Another example.", "KSC-TOPS-9011", "Sensors", "", "", "", "KSC", "", "", 10.0]
+    ]
+  },
+  "software": {
+    "cryogenic": [
+      ["bbbbbbbbbbbbbbbbbbbb0001", "ARC-90001-1", "Simulation of <span class=\"highlight\">Cryogenic</span> Example Tank", "<p>A MATLAB simulation of a <span class=\"highlight\">cryogenic</span> tank.</p>", "ARC-90001-1", "design and integration tools", "Open Source", "", "https://github.com/example/example-tank", "ARC", "", "", 21.4]
+    ],
+    "tank": [
+      ["bbbbbbbbbbbbbbbbbbbb0001", "ARC-90001-1", "Simulation of Cryogenic Example <span class=\"highlight\">Tank</span>", "<p>A MATLAB simulation of a cryogenic <span class=\"highlight\">tank</span>.</p>", "ARC-90001-1", "design and integration tools", "Open Source", "", "https://github.com/example/example-tank", "ARC", "", "", 11.0],
+      ["bbbbbbbbbbbbbbbbbbbb0002", "GSC-90002-1", "Example Tank Planner", "Plans tank fills.", "GSC-90002-1", "operations", "U.S. Release Only", "Request through the software catalog", "", "GSFC", "", "", 6.0]
+    ],
+    "ARC-90001-1": [
+      ["bbbbbbbbbbbbbbbbbbbb0001", "ARC-90001-1", "Simulation of Cryogenic Example Tank", "<p>A MATLAB simulation of a cryogenic tank.</p>", "ARC-90001-1", "design and integration tools", "Open Source", "", "https://github.com/example/example-tank", "ARC", "", "", 25.0]
+    ]
+  },
+  "spinoff": {
+    "cryogenic": [
+      ["cccccccccccccccccccc0001", "KSC-SO-901", "Gauges Track <span class=\"highlight\">Cryogenic</span> Liquids", "With SBIR awards from Kennedy Space Center, Example Cryo Inc. developed a mass gauge for <span class=\"highlight\">cryogenic</span> tanks. It&apos;s now sold to industry.", "KSC-SO-901", "Industrial Productivity", "", "", "", "KSC", "", "", 17.7]
+    ],
+    "tank": [
+      ["cccccccccccccccccccc0001", "KSC-SO-901", "Gauges Track Cryogenic Liquids", "With SBIR awards from Kennedy Space Center, Example Cryo Inc. developed a mass gauge for cryogenic <span class=\"highlight\">tanks</span>.", "KSC-SO-901", "Industrial Productivity", "", "", "", "KSC", "", "", 9.7]
+    ],
+    "KSC-SO-901": [
+      ["cccccccccccccccccccc0001", "KSC-SO-901", "Gauges Track Cryogenic Liquids", "With SBIR awards from Kennedy Space Center, Example Cryo Inc. developed a mass gauge for cryogenic tanks. It&apos;s now sold to industry.", "KSC-SO-901", "Industrial Productivity", "", "", "", "KSC", "", "", 30.0]
+    ]
+  }
+}

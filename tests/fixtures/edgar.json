@@ -1,0 +1,89 @@
+{
+  "_about": "Made-up SEC EDGAR responses in SEC's own shapes (probed 2026-09-30). Companies, numbers and ids are invented; CIKs 9000001-9000004 are not real filers.",
+  "tickers": {
+    "0": {"cik_str": 9000001, "ticker": "EXRK", "title": "Example Rocket Corp"},
+    "1": {"cik_str": 9000002, "ticker": "EXLN", "title": "Example Lunar Inc."},
+    "2": {"cik_str": 9000003, "ticker": "EXRA", "title": "Example Rocket Analytics Corp"}
+  },
+  "suggest": {
+    "took": 12, "timed_out": false,
+    "hits": {"total": {"value": 2, "relation": "eq"}, "hits": [
+      {"_index": "edgar_entity_20260930", "_id": "9000004", "_score": 20.1, "_source": {"entity": "EXAMPLE CRYO SYSTEMS INC", "entity_words": "EXAMPLE CRYO SYSTEMS INC", "tickers": "", "rank": 1}},
+      {"_index": "edgar_entity_20260930", "_id": "9000001", "_score": 10.5, "_source": {"entity": "EXAMPLE ROCKET CORP (EXRK)", "entity_words": "EXAMPLE ROCKET CORP (EXRK)", "tickers": "EXRK", "rank": 2}}
+    ]}
+  },
+  "submissions": {
+    "cik": "0009000001", "entityType": "operating", "sic": "3760", "sicDescription": "Guided Missiles & Space Vehicles & Parts",
+    "name": "Example Rocket Corp", "tickers": ["EXRK"], "exchanges": ["Nasdaq"], "category": "Large accelerated filer",
+    "fiscalYearEnd": "1231", "stateOfIncorporation": "DE", "stateOfIncorporationDescription": "DE", "website": "",
+    "addresses": {"business": {"street1": "1 EXAMPLE WAY", "city": "EXAMPLE CITY", "stateOrCountry": "CA", "zipCode": "90000"},
+                  "mailing": {"street1": "1 EXAMPLE WAY", "city": "EXAMPLE CITY", "stateOrCountry": "CA", "zipCode": "90000"}},
+    "formerNames": [{"name": "Example Acquisition Corp", "from": "2020-08-07T04:00:00.000Z", "to": "2021-08-30T04:00:00.000Z"}],
+    "filings": {
+      "recent": {
+        "accessionNumber": ["0009000001-25-000020", "0009000001-25-000015", "0009000001-25-000010", "0009000001-25-000012"],
+        "filingDate": ["2025-09-15", "2025-08-07", "2025-02-27", "2025-03-10"],
+        "reportDate": ["2025-09-15", "2025-06-30", "2024-12-31", "2024-12-31"],
+        "acceptanceDateTime": ["2025-09-15T10:44:20.000Z", "2025-08-07T16:01:00.000Z", "2025-02-27T16:05:00.000Z", "2025-03-10T09:00:00.000Z"],
+        "form": ["8-K", "10-Q", "10-K", "10-K/A"],
+        "items": ["7.01,8.01,9.01", "", "", ""],
+        "primaryDocument": ["exrk-8k.htm", "exrk-20250630.htm", "exrk-10k2024.htm", "exrk-10ka.htm"],
+        "primaryDocDescription": ["8-K", "10-Q", "10-K", "10-K/A"],
+        "size": [266498, 5000000, 2429293, 300000],
+        "isXBRL": [1, 1, 1, 0]
+      },
+      "files": []
+    }
+  },
+  "facts": {
+    "cik": 9000001, "entityName": "Example Rocket Corp",
+    "facts": {
+      "dei": {"EntityCommonStockSharesOutstanding": {"label": "Shares", "units": {"shares": [{"end": "2025-02-20", "val": 500, "fy": 2024, "fp": "FY", "form": "10-K", "frame": "CY2025Q1I"}]}}},
+      "us-gaap": {
+        "SalesRevenueNet": {"label": "Revenues, Net", "units": {"USD": [
+          {"start": "2016-01-01", "end": "2016-12-31", "val": 10000000, "accn": "0009000001-17-000001", "fy": 2016, "fp": "FY", "form": "10-K", "filed": "2017-03-01", "frame": "CY2016"},
+          {"start": "2017-01-01", "end": "2017-12-31", "val": 20000000, "accn": "0009000001-18-000001", "fy": 2017, "fp": "FY", "form": "10-K", "filed": "2018-03-01", "frame": "CY2017"}
+        ]}},
+        "RevenueFromContractWithCustomerExcludingAssessedTax": {"label": "Revenue", "units": {"USD": [
+          {"start": "2017-01-01", "end": "2017-12-31", "val": 21000000, "accn": "0009000001-19-000001", "fy": 2018, "fp": "FY", "form": "10-K", "filed": "2019-03-01"},
+          {"start": "2018-01-01", "end": "2018-12-31", "val": 30000000, "accn": "0009000001-19-000001", "fy": 2018, "fp": "FY", "form": "10-K", "filed": "2019-03-01", "frame": "CY2018"},
+          {"start": "2019-01-01", "end": "2019-12-31", "val": 40000000, "accn": "0009000001-20-000001", "fy": 2019, "fp": "FY", "form": "10-K", "filed": "2020-03-01", "frame": "CY2019"},
+          {"start": "2019-10-01", "end": "2019-12-31", "val": 12000000, "accn": "0009000001-20-000001", "fy": 2019, "fp": "FY", "form": "10-K", "filed": "2020-03-01", "frame": "CY2019Q4"}
+        ]}},
+        "ResearchAndDevelopmentExpense": {"label": "R&D", "units": {"USD": [
+          {"start": "2019-01-01", "end": "2019-12-31", "val": 5000000, "accn": "0009000001-20-000001", "fy": 2019, "fp": "FY", "form": "10-K", "filed": "2020-03-01", "frame": "CY2019"}
+        ]}},
+        "NetIncomeLoss": {"label": "Net loss", "units": {"USD": [
+          {"start": "2019-01-01", "end": "2019-12-31", "val": -7000000, "accn": "0009000001-20-000001", "fy": 2019, "fp": "FY", "form": "10-K", "filed": "2020-03-01", "frame": "CY2019"}
+        ]}},
+        "Assets": {"label": "Assets", "units": {"USD": [
+          {"end": "2019-09-30", "val": 90000000, "accn": "0009000001-19-000009", "fy": 2019, "fp": "Q3", "form": "10-Q", "filed": "2019-11-01", "frame": "CY2019Q3I"},
+          {"end": "2019-12-31", "val": 100000000, "accn": "0009000001-20-000001", "fy": 2019, "fp": "FY", "form": "10-K", "filed": "2020-03-01", "frame": "CY2019Q4I"}
+        ]}},
+        "OperatingIncomeLoss": {"label": "Operating loss", "units": {"EUR": [
+          {"start": "2019-01-01", "end": "2019-12-31", "val": -1, "accn": "x", "fy": 2019, "fp": "FY", "form": "10-K", "filed": "2020-03-01", "frame": "CY2019"}
+        ]}}
+      }
+    }
+  },
+  "search": {
+    "took": 41, "timed_out": false,
+    "hits": {"total": {"value": 2, "relation": "eq"}, "max_score": 20.0, "hits": [
+      {"_index": "edgar_file", "_id": "0009000001-25-000010:exrk-10k2024.htm", "_score": 20.0, "_source": {
+        "ciks": ["0009000001"], "period_ending": "2024-12-31", "display_names": ["Example Rocket Corp  (EXRK)  (CIK 0009000001)"],
+        "root_forms": ["10-K"], "file_date": "2025-02-27", "biz_states": ["CA"], "sics": ["3760"], "form": "10-K",
+        "adsh": "0009000001-25-000010", "file_type": "10-K", "file_description": "ANNUAL REPORT", "items": []}},
+      {"_index": "edgar_file", "_id": "0009000002-24-000003:ex13.htm", "_score": 12.0, "_source": {
+        "ciks": ["0009000002"], "period_ending": "2023-12-31", "display_names": ["Example Lunar Inc.  (CIK 0009000002)"],
+        "root_forms": ["10-K"], "file_date": "2024-03-15", "biz_states": ["TX"], "sics": ["8731"], "form": "10-K",
+        "adsh": "0009000002-24-000003", "file_type": "EX-13", "file_description": "2023 ANNUAL REPORT TO SHAREHOLDERS", "items": []}}
+    ]},
+    "aggregations": {
+      "entity_filter": {"doc_count_error_upper_bound": 0, "sum_other_doc_count": 0, "buckets": [
+        {"key": "Example Rocket Corp  (EXRK)  (CIK 0009000001)", "doc_count": 1}, {"key": "Example Lunar Inc.  (CIK 0009000002)", "doc_count": 1}]},
+      "form_filter": {"doc_count_error_upper_bound": 0, "sum_other_doc_count": 0, "buckets": [{"key": "10-K", "doc_count": 2}]},
+      "biz_states_filter": {"doc_count_error_upper_bound": 0, "sum_other_doc_count": 0, "buckets": [{"key": "CA", "doc_count": 1}, {"key": "TX", "doc_count": 1}]},
+      "sic_filter": {"doc_count_error_upper_bound": 0, "sum_other_doc_count": 0, "buckets": [{"key": "3760", "doc_count": 1}, {"key": "8731", "doc_count": 1}]}
+    }
+  }
+}

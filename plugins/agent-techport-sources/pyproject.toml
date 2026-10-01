@@ -1,0 +1,16 @@
+[project]
+name = "agent-techport-sources"
+version = "0.1.1"
+description = "Local MCP servers for Agent TechPort Sources"
+requires-python = ">=3.11"
+license = "Apache-2.0"
+# The official MCP SDK, and truststore, which checks HTTPS certificates against
+# the operating system's trust store (on macOS, the Python that uv installs
+# reads a static file that lacks some current roots). Calls to the source APIs
+# use the Python standard library.
+dependencies = ["mcp>=2.2,<3", "truststore>=0.10,<1"]
+
+[tool.uv]
+# Not an installable package: uv runs the servers from this directory and
+# needs no build backend.
+package = false
