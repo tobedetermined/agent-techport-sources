@@ -1,6 +1,6 @@
 # Agent TechPort Sources: design note
 
-Status: **in development, plugin version 0.1.4.** The SBIR, TechPort and
+Status: **in development, plugin version 0.1.5.** The SBIR, TechPort and
 USAspending servers are built and tested; the other three sources are planned. Decisions and
 evidence date from 2026-09-30. Every number below was measured unless it is
 marked *assumed*.
@@ -1782,7 +1782,21 @@ advice, not a tool problem.
    paths under it (the daily copy too), and every result and the self-check
    name the relay. (First built as a URL setting; changed the same day to a
    yes/no switch with the user's relay built in, and named in the README
-   with who runs it, what it keeps and its limits.) This is the one exception to the no-third-party rule in the
+   with who runs it, what it keeps and its limits. On the NASA Mac, the
+   user found `/plugin configure` shows a yes/no setting as a text field to
+   type `true` into; Claude Code 2.1.286's `/config` lists enabled plugins'
+   settings with yes/no as a toggle, saved for `/reload-plugins` to apply
+   (read from its code, 2026-10-01), so the docs now point there.)
+   **NASA VPN test with 0.1.4 (2026-10-01): all six sources pass**, with
+   TechPort through the relay (`via_relay: nasatechport-mcp.fly.dev`) and
+   SBIR's first download and build done there. One snag, in Claude Code:
+   `/plugin configure` reported "Configuration saved" for the relay switch,
+   but `~/.claude/settings.json` didn't have the key, and after
+   `/reload-plugins` TechPort still answered 401. After configuring again
+   and fully exiting Claude Code, the setting was in the file and TechPort
+   passed. Which of the two fixed it isn't known; the docs now say to
+   restart fully and check with the self-check, which names the relay when
+   it is used. This is the one exception to the no-third-party rule in the
    contributor notes. The relay is a REST pass-through built for this in its
    own repository, specified to forward only the paths this plugin calls and
    to keep no queries or IP addresses. Reachability checked from the NASA VPN: the

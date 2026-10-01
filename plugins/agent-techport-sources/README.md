@@ -140,9 +140,13 @@ off unless you need it.
   `techport.nasa.gov`; the other sources are still called directly. Every
   TechPort result names the relay (`via_relay`), and the self-check says it
   was used.
-- Turn it on with
-  `/plugin configure agent-techport-sources@agent-techport-sources`, then
-  restart Claude Code.
+- Turn it on in Claude Code's `/config`: search for "relay" and switch on
+  "Reach TechPort through the public relay". In `/plugin configure` the same
+  setting is a text field instead: type `true` to turn it on, `false` to
+  turn it off. Then exit Claude Code fully and start it again:
+  `/reload-plugins` wasn't enough in testing. Run
+  `/agent-techport-sources:selfcheck` to check: TechPort should say "via
+  relay".
 
 **Anthropic is still in the loop.** The plugin adds no party beyond the hosts
 above. But Claude Code sends your questions and the tools' results to

@@ -52,7 +52,10 @@ to, using these:
   TechPort works off the VPN; the other sources work either way. On the VPN,
   the plugin's optional setting "Reach TechPort through the public relay"
   reaches TechPort's public data through a relay instead (README, "TechPort
-  relay").
+  relay"). To turn it on: `/config`, search for "relay", switch it on, then
+  exit Claude Code fully and start it again (`/reload-plugins` wasn't
+  enough in testing). If TechPort still fails this way with the relay on,
+  the setting didn't save: check it in `/config` again.
 - EDGAR says the name or email isn't set: set them with
   `/plugin configure agent-techport-sources@agent-techport-sources`, then
   restart Claude Code.
