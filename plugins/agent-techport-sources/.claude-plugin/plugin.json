@@ -1,6 +1,6 @@
 {
   "name": "agent-techport-sources",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "description": "Agent TechPort Sources: local MCP servers that call public government data sources directly (NASA TechPort, NTRS and Technology Transfer; SBIR; USAspending; SEC EDGAR). No third-party servers, no telemetry.",
   "author": {
     "name": "Claude Opus 5.5 and Alexander van Dijk"
@@ -28,6 +28,13 @@
       "title": "Your email address, for SEC EDGAR",
       "description": "Needed for the EDGAR tools; sent only to SEC. Leave empty if you won't use them.",
       "required": false
+    },
+    "use_techport_relay": {
+      "type": "boolean",
+      "title": "Reach TechPort through the public relay (only for the NASA VPN)",
+      "description": "Leave off unless techport.nasa.gov asks you for a login, as it does on the NASA VPN. When on, every TechPort request goes to a relay run by Alexander van Dijk (nasatechport-mcp.fly.dev) instead, which passes TechPort's public API through. It keeps no queries or IP addresses; see the plugin's README.",
+      "required": false,
+      "default": false
     }
   },
   "mcpServers": {
@@ -55,7 +62,10 @@
         "python",
         "-m",
         "servers.techport"
-      ]
+      ],
+      "env": {
+        "TECHPORT_RELAY": "${user_config.use_techport_relay}"
+      }
     },
     "usaspending": {
       "command": "uv",

@@ -10,10 +10,12 @@ not from Claude's memory, and every answer says where its data came from and
 how current it is.
 
 It runs entirely on your machine, as local MCP servers that call the
-government sources directly. There is no hosted relay, no third-party
-service and no telemetry.
+government sources directly. There is no third-party service and no
+telemetry. The one exception is optional and off unless you turn it on: a
+relay for TechPort, for networks where TechPort asks for a login (see
+"TechPort relay").
 
-**Status: early development (version 0.1.0).** All six planned sources
+**Status: early development.** All six planned sources
 work.
 
 | Source | What it covers | Status |
@@ -38,8 +40,8 @@ work.
 - **Disk space:**
   - SBIR: about 0.7 GB, rising briefly to about 1.8 GB during its monthly
     refresh.
-  - TechPort: about 0.25 GB, rising briefly to about 0.6 GB during its daily
-    refresh.
+  - TechPort: about 0.25 GB, rising briefly to about 0.6 GB while it is
+    refreshed.
   - USAspending, NTRS, NASA Technology Transfer and SEC EDGAR keep no local
     copy.
 
@@ -96,7 +98,8 @@ about 1.3 s on a fast connection.
 | Host | When | What is sent |
 |---|---|---|
 | `data.www.sbir.gov` | SBIR server start (a date check), and a download when SBIR.gov publishes a new file, about monthly | Plain HTTP requests for the public award file |
-| `techport.nasa.gov` | Most TechPort questions; a full project list at most once a day | Your search words and filters, project and file ids, and text you ask TechPort's classifier to label |
+| `techport.nasa.gov` | Most TechPort questions; once a day at most, the projects changed since the last check (usually under 1 MB); the full project list (115 MB) about once a week | Your search words and filters, project and file ids, and text you ask TechPort's classifier to label |
+| `nasatechport-mcp.fly.dev`, only if you turn on the TechPort relay | Instead of `techport.nasa.gov`, for every TechPort request | The same as for `techport.nasa.gov`; see "TechPort relay" |
 | `api.usaspending.gov` | Every USAspending question | Your search words and filters, award numbers and company UEIs |
 | `ntrs.nasa.gov` | Every NTRS question | Your search words and filters, and record ids; the files you ask for are downloaded from it |
 | `technology.nasa.gov` | Every NASA Technology Transfer question | Your search words, each sent on its own, and reference numbers; for one patent, its web page is downloaded |
@@ -108,9 +111,38 @@ Certificates are checked against your operating system's trust store, as your
 browser does (on a managed Mac, the list your IT department manages), using
 the `truststore` package. Certificate checking is never switched off.
 
-Every request identifies itself as `agent-techport-sources/0.1.0 (Claude Code
-plugin)`. The plugin's HTTP code refuses any host not on its server's list,
+Every request identifies itself as `agent-techport-sources/<version> (Claude
+Code plugin)`. The plugin's HTTP code refuses any host not on its server's list,
 redirects included.
+
+**TechPort relay (optional, off by default).** On some networks, such as the
+NASA VPN, `techport.nasa.gov` asks for a login (see "Limits"). The setting
+"Reach TechPort through the public relay" lets the TechPort tools reach
+TechPort's public API through `nasatechport-mcp.fly.dev` instead. Leave it
+off unless you need it.
+- **Who runs it:** Alexander van Dijk, as a personal project, with no
+  uptime guarantee. Like this plugin, it was written by Claude Opus 5.5
+  (Anthropic) with him. It passes TechPort's public API through unchanged and
+  can reach nothing that isn't public.
+- **What it keeps,** in its operator's words: "The relay keeps only an
+  in-memory count of requests per route per UTC day, lost on restart. It
+  does not log or store query strings, request bodies, or client IP
+  addresses. Cookies, Authorization and all other client headers except
+  Accept, Accept-Encoding and (for POST) Content-Type are dropped before
+  forwarding; Set-Cookie and auth headers from TechPort are not returned.
+  The relay's operator controls only the app; Fly.io's edge network is
+  outside that."
+- **Limits:** 60 requests a minute per IP address (people on the NASA VPN
+  probably share one), at most 10 requests at once across all users, and 2
+  full project lists at once. When busy it asks the plugin to wait, which
+  the plugin does for up to 30 seconds.
+- **When it's on,** every TechPort request goes to the relay instead of
+  `techport.nasa.gov`; the other sources are still called directly. Every
+  TechPort result names the relay (`via_relay`), and the self-check says it
+  was used.
+- Turn it on with
+  `/plugin configure agent-techport-sources@agent-techport-sources`, then
+  restart Claude Code.
 
 **Anthropic is still in the loop.** The plugin adds no party beyond the hosts
 above. But Claude Code sends your questions and the tools' results to
@@ -151,10 +183,14 @@ OpenTelemetry SDK and exporter, and this plugin includes neither.
 - **Live on every call:** keyword search, single projects, programs,
   organisations, capability areas and shortfalls, funding opportunities,
   TechPort's own TREX technology classifier, and what's new.
-- **From a local copy refreshed daily:** counts and rankings, listings without
-  a keyword, contact search and batch lookups. These answers state the copy's
-  date. The copy is built the first time such a question is asked, which
-  takes about 15 s.
+- **From a local copy, checked for changes daily:** counts and rankings,
+  listings without a keyword, contact search and batch lookups. These answers
+  state the copy's date. The copy is built from TechPort's full project list
+  (115 MB) the first time such a question is asked, which takes about 15 s.
+  After that, once a day at most, the plugin asks TechPort which projects
+  changed and fetches only those (about 60 on a typical day, a few hundred
+  around the end of a month, when finished projects are marked Completed);
+  the full list is pulled again about once a week.
 - **Documents:** getting one project also brings its library files (briefing
   charts, final reports, images), up to about 11 MB per answer. See "Limits".
 - **No funding amounts:** TechPort's public API has none. For dollars, Claude
@@ -271,7 +307,7 @@ you ask for them.
 - **Downloaded data:** Claude Code's plugin data folder,
   `~/.claude/plugins/data/<plugin id>/`, with `sbir/` and `techport/` inside.
   Claude Code deletes it when you uninstall the plugin.
-- **Your name and email for SEC,** if you set them: in your Claude Code user settings
+- **Your name and email for SEC, and whether the TechPort relay is on,** if you set them: in your Claude Code user settings
   (under `pluginConfigs`), not in the plugin's folder.
 - **Oversized documents:** a TechPort or NTRS file too large to attach
   (11–20 MB) is saved under `techport/files/` or `ntrs/files/` there, and the
@@ -287,6 +323,13 @@ you ask for them.
 
 ## Limits
 
+- **TechPort from inside NASA's network:** on the NASA VPN (or on site),
+  `techport.nasa.gov` leads to a version of TechPort that asks for a NASA
+  login on every request. This plugin reads only TechPort's public API and
+  doesn't log in, so its TechPort tools say so and stop; off the VPN they
+  work, and a TechPort relay (see "What leaves your machine") is an option
+  on it. The other sources work either way. Checked on a NASA-managed Mac,
+  2026-10-01.
 - **Document size:** Claude Code drops a tool result larger than about 16 MiB.
   That was measured, not documented; one result holds at most about 11 MB of
   attached files. So:

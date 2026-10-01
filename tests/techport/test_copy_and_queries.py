@@ -220,5 +220,116 @@ class CopyTest(unittest.TestCase):
         self.assertNotEqual(dbfiles.current_path(self.tmp), first)
 
 
+
+class UpdateTest(unittest.TestCase):
+    """The daily update: only changed projects are fetched, in the full pull's shape."""
+
+    def setUp(self):
+        self.tmp = tempfile.mkdtemp()
+        copy.refresh(self.tmp, http=None, json_override=SEARCH)
+        with open(SEARCH, encoding="utf-8") as f:
+            self.raw = {p["projectId"]: p for p in json.load(f)["results"]}
+
+    def tearDown(self):
+        shutil.rmtree(self.tmp)
+
+    def fake(self, changed, edits, missing=()):
+        raw = self.raw
+
+        class TP:
+            searched = []
+
+            def updated_since(self, date):
+                self.since = date
+                return [{"projectId": i} for i in changed]
+
+            def search(self, query, limit):
+                pid = int(query)
+                self.searched.append(pid)
+                if pid in missing:
+                    return {"results": [raw[900003]]}                 # a number match, not the project
+                return {"results": [raw[900003], {**raw[pid], **edits.get(pid, {})}]}
+        return TP()
+
+    def test_changed_and_ended_projects_are_fetched_and_replaced(self):
+        before, _ = copy.status(self.tmp)
+        tp = self.fake([900002], {900002: {"title": "Lunar Regolith Excavator"},
+                                  900001: {"status": "Completed"}})
+        meta = copy.update(self.tmp, tp, today="2026-10-01")
+        # 900002 is listed as changed; 900001 is Active with an end date that has passed.
+        self.assertEqual(sorted(tp.searched), [900001, 900002])
+        self.assertEqual((meta["projects"], meta["last_update_fetched"], meta["loaded_at"]),
+                         ("3", "2", before["loaded_at"]))                # the full pull's date is kept
+        self.assertTrue(copy.status(self.tmp)[1])
+        db, _ = copy.open_copy(self.tmp)
+        try:
+            self.assertEqual(queries.find(db, query="excavator")["total"], 1)        # the keyword index too
+            self.assertEqual(queries.find(db, query="rover")["total"], 0)
+            self.assertEqual(queries.find(db, status="Active")["total"], 0)
+            self.assertEqual(db.execute("SELECT count(*) FROM destinations WHERE project_id = 900002").fetchone()[0],
+                             len(model.normalize(self.raw[900002])["destinations"]))  # no rows doubled
+        finally:
+            db.close()
+
+    def test_a_project_search_cant_find_is_left_as_it_is(self):
+        meta = copy.update(self.tmp, self.fake([900002], {}, missing={900002}), today="2026-01-01")
+        self.assertEqual((meta["last_update_fetched"], meta["last_update_not_found"], meta["projects"]),
+                         ("0", "1", "3"))
+
+    def test_the_check_overlaps_the_last_one_by_a_day(self):
+        tp = self.fake([], {})
+        meta, _ = copy.status(self.tmp)
+        copy.update(self.tmp, tp, today="2026-01-01")
+        self.assertEqual(tp.since, (copy.datetime.fromisoformat(copy.as_of(meta)) -
+                                    copy.timedelta(days=1)).date().isoformat())
+
+    def test_a_failed_fetch_is_skipped_and_the_check_date_kept(self):
+        before, _ = copy.status(self.tmp)
+        tp = self.fake([900001, 900002], {900001: {"title": "Zero-Boil-Off Flight Tank"}})
+        real = tp.search
+
+        def search(query, limit):
+            if query == "900002":
+                raise copy.SourceError("TechPort is busy (HTTP 503)")
+            return real(query, limit)
+        tp.search = search
+        meta = copy.update(self.tmp, tp, today="2026-01-01")
+        self.assertEqual((meta["last_update_fetched"], meta["last_update_failed"]), ("1", "1"))
+        self.assertEqual(copy.as_of(meta), copy.as_of(before))            # asked again from the same date
+        db, _ = copy.open_copy(self.tmp)
+        try:
+            self.assertEqual(queries.find(db, query="flight")["total"], 1)    # what it got is kept
+        finally:
+            db.close()
+
+    def test_the_update_stops_when_the_source_seems_down(self):
+        saved = copy.MAX_FAILURES_IN_A_ROW
+        copy.MAX_FAILURES_IN_A_ROW = 2
+        tp = self.fake([900001, 900002, 900003], {})
+        calls = []
+
+        def down(query, limit):
+            calls.append(query)
+            raise copy.SourceError("not responding")
+        tp.search = down
+        try:
+            meta = copy.update(self.tmp, tp, today="2026-01-01")
+        finally:
+            copy.MAX_FAILURES_IN_A_ROW = saved
+        self.assertEqual((len(calls), meta["last_update_failed"]), (2, "3"))   # two tried, one never asked
+
+    def test_too_many_changes_mean_a_full_pull(self):
+        saved = copy.MAX_UPDATES
+        copy.MAX_UPDATES = 1
+        try:
+            self.assertIsNone(copy.update(self.tmp, self.fake([900002, 900003], {}), today="2026-01-01"))
+        finally:
+            copy.MAX_UPDATES = saved
+
+    def test_a_week_old_full_pull_is_due_again(self):
+        self.assertFalse(copy.full_pull_due({"loaded_at": copy.datetime.now(copy.timezone.utc).isoformat()}))
+        self.assertTrue(copy.full_pull_due({"loaded_at": "2026-01-01T00:00:00+00:00"}))
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -33,6 +33,9 @@ class FakeTechPort:
     """Serves files of given sizes, and the fixture project with any extra library
     items; records what was fetched."""
 
+    relay_host = None                                   # no relay set
+    search_url = "https://techport.nasa.gov/api/projects/search"
+
     def __init__(self, sizes, extra_items=()):
         self.sizes = sizes
         self.extra_items = list(extra_items)
@@ -283,6 +286,14 @@ class GetProjectTest(unittest.TestCase):
         grouped = lambda q: bool(server.GROUPED.search(re.sub(r'"[^"]*"', " ", q)))
         self.assertTrue(all(grouped(q) for q in ("a | b", "a OR b", "a (b c)", "a|b")))
         self.assertFalse(any(grouped(q) for q in ("ORBITAL test", '"mission OR test"', "regolith -Mars", "a or b")))
+
+    def test_results_name_the_relay_when_one_is_set(self):
+        body = json.loads(server.techport_opportunities())
+        self.assertNotIn("via_relay", body["data"])
+        server.tp.relay_host = "nasatechport-mcp.fly.dev"
+        body = json.loads(server.techport_opportunities())
+        self.assertEqual(body["data"]["via_relay"], "nasatechport-mcp.fly.dev")
+        self.assertEqual(server._copy_notice({"loaded_at": "x", "projects": "1"})["via_relay"], "nasatechport-mcp.fly.dev")
 
     def test_an_organization_without_a_uei_says_how_to_link_it(self):
         server.tp.organizations = lambda **kw: [

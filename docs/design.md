@@ -1,6 +1,6 @@
 # Agent TechPort Sources: design note
 
-Status: **in development, plugin version 0.1.3.** The SBIR, TechPort and
+Status: **in development, plugin version 0.1.4.** The SBIR, TechPort and
 USAspending servers are built and tested; the other three sources are planned. Decisions and
 evidence date from 2026-09-30. Every number below was measured unless it is
 marked *assumed*.
@@ -21,8 +21,8 @@ any other user; no study-specific code or data lives in this repo.
 | Distribution | One GitHub repo that is both the marketplace and the plugin (`.claude-plugin/marketplace.json` with plugin `source: "./plugins/agent-techport-sources"`). Published from one squashed commit; the full history stays local (open question 1) |
 | Licence | Apache-2.0, decided 2026-09-30, for a personal open-source release. `LICENSE` is at the repo root and inside the plugin folder (only that folder reaches users). All 30 packages in `uv.lock` are permissive: MIT, BSD-3-Clause, Apache-2.0, MIT-0, PSF (checked from the installed packages' metadata; the two not installed on macOS, `pywin32` and `httpx2-jsfetch`, on PyPI) |
 | Sources (v1) | TechPort, NTRS, USAspending, NASA Technology Transfer, SEC EDGAR, SBIR (public bulk CSV) |
-| TechPort access | The plugin's own local stdio server calling `techport.nasa.gov` directly. Hosted TechPort MCP connectors are not used or depended on |
-| Routing | Local stdio MCP servers that call the government endpoints directly. No third-party servers, no hosted relay, no telemetry. The only network calls go to the source hosts, plus PyPI at install time (and Astral's `releases.astral.sh` if uv has to download Python; see "Install-time hosts") |
+| TechPort access | The plugin's own local stdio server calling `techport.nasa.gov` directly; optionally, where TechPort asks for a login (the NASA VPN), through the TechPort relay (open question 2). Hosted TechPort MCP connectors are not used or depended on |
+| Routing | Local stdio MCP servers that call the government endpoints directly. No third-party servers and no telemetry, except the optional TechPort relay, off by default (open question 2). The only network calls go to the source hosts, plus PyPI at install time (and Astral's `releases.astral.sh` if uv has to download Python; see "Install-time hosts") |
 | Language | Python 3.11+, run with `uv`. Declared dependencies: the official MCP SDK (`mcp`), and `truststore` for checking HTTPS certificates against the operating system's trust store (see "HTTPS certificates"). `truststore` was already installed as part of the SDK, so the set is unchanged: 30 packages, all from PyPI, pinned in the committed `uv.lock`. Calls to the source APIs use the standard library (`urllib`). Tests use the standard library's `unittest`, so there are no dev dependencies |
 | Self-contained | Nothing needs to exist on the user's machine beforehand. The SBIR data is downloaded from SBIR.gov on first use |
 | SBIR contact data | Kept. All 42 columns are loaded, including the public PI and contact fields. Tool output shows company and PI name by default; titles, phones, emails, the "Contact" fields and the research-institution contact only when the caller asks for them |
@@ -1758,6 +1758,73 @@ advice, not a tool problem.
    command line, `--scope local` works in such a folder (checked here: it
    writes only that folder's `.claude/settings.local.json`), and the README
    now says so.
+   **TechPort on the NASA VPN (2026-10-01):** the self-check on that Mac,
+   on the VPN, passed every source but TechPort, which answered HTTP 401
+   ("Please visit /api/authenticate to authenticate"). Checks there: NASA's
+   network resolves `techport.nasa.gov` to a different server from the one
+   public DNS gives (TechPort's public load balancer), and that server
+   answers every request 401. Its
+   home page redirects to `/api/authenticate`, which redirects to NASA's
+   Launchpad SAML sign-on; the cookies it hands out don't open the API. Off
+   the VPN, the same request was answered 200 with the FO record and no
+   login. **Decided:** the plugin doesn't log in (it would reach non-public
+   records, against the public-sources rule) and doesn't connect to the
+   public addresses directly (that would get round how NASA routes its
+   network). A 401 from TechPort now says what it means: TechPort asks for a
+   NASA login from inside NASA's network; use it off the VPN. The self-check
+   gives the same hint.
+   **Optional TechPort relay (decided with the user 2026-10-01):** the user
+   wants the plugin to work on the VPN without disclosing anything
+   non-public. So: no NASA login, ever, but an optional setting, "TechPort
+   relay URL", off by default, sends TechPort's public API calls to a relay
+   outside NASA's network instead. When set, the plugin's TechPort client
+   allows only the relay's host (not `techport.nasa.gov`), uses the same
+   paths under it (the daily copy too), and every result and the self-check
+   name the relay. (First built as a URL setting; changed the same day to a
+   yes/no switch with the user's relay built in, and named in the README
+   with who runs it, what it keeps and its limits.) This is the one exception to the no-third-party rule in the
+   contributor notes. The relay is a REST pass-through built for this in its
+   own repository, specified to forward only the paths this plugin calls and
+   to keep no queries or IP addresses. Reachability checked from the NASA VPN: the
+   relay's host answered. Relay live 2026-10-01; the plugin checked through
+   it: the same numbers as direct, and the full copy in 12.5 s. The HTTP
+   client now honours Retry-After up to 30 s, since the relay answers 429
+   or 503 with 30-60 s when busy. Made a yes/no setting with the relay's
+   address built in, at the user's call (no one brings their own relay).
+   **Incremental copy updates (2026-10-01, asked for by the user,** after
+   seeing that each relay user would pull 115 MB a day): TechPort's
+   `/api/projects?updatedSince=` listed 59 projects changed in a day, 92 in
+   a week and 184 in a month (5-16 KB per answer). Measured on the way:
+   - The single-project endpoint isn't the full pull's shape after
+     `normalize` (phase missing in 14 of 20, outcome paths spelled "Closed
+     out", other orders), so it would corrupt counts. TechPort's search for
+     a project's number returns it in the full pull's shape: on 25
+     unchanged projects, identical but for list order and view counts
+     (about 13 KB per answer).
+   - TechPort marks a project Completed when its end date passes, around
+     the month's end, without listing it as changed (project 183769, last
+     modified 07/16/26, ended 2026-09-30, Completed on 2026-10-01).
+   So, once a day at most: fetch the listed projects (with a day's overlap)
+   and every project still Active whose end date has passed, by searching
+   for their numbers; apply them to a copy of the database file and switch
+   to it as a full build does. A full pull every 7 days, or when more than
+   2,000 changed, also drops deleted projects. Pacing: 1 s between requests
+   through the relay, 0.2 s direct. Checked against a full pull taken
+   minutes later on 2026-10-01: from the previous day's copy, the update
+   fetched 302 projects (the month's end) in 126 s; both copies held the
+   same 21,044 projects with every column equal and the same row counts in
+   every table. 16 projects' contact lists differed in their stored
+   records: contact changes TechPort doesn't list as project changes, which
+   the weekly pull picks up. Through the relay, started as the server
+   starts it (`_build_copy` with the relay on), the same month-end update
+   took 345 s, fetched all 302 and met no 429 or 503. The 243 projects
+   past their end date all ended 2026-09-30: end dates fall on month ends,
+   so ended projects are re-fetched in one batch after each month's end and
+   hardly at all otherwise. A project that can't be fetched is skipped and
+   the update carries on, stopping after 5 failures in a row (the source
+   taken to be down); what was fetched is kept, but the copy's check date
+   doesn't move, so the next update asks again from the same date, and the
+   server waits an hour before that.
 3. ~~Contact fields in tool output.~~ **Decided 2026-09-30:** company and PI
    name by default, full contact details on request. See "SBIR contact data".
 4. ~~Plugin at the repo root or in a subdirectory.~~ **Decided 2026-09-30:**

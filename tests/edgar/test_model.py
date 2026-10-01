@@ -20,7 +20,7 @@ class ContactTest(unittest.TestCase):
     def test_a_name_and_email(self):
         self.assertEqual(model.contact("  Jane Doe  jane@example.com "), "Jane Doe jane@example.com")
         self.assertEqual(model.user_agent("Jane Doe jane@example.com"),
-                         "agent-techport-sources/0.1.0 (Claude Code plugin) Jane Doe jane@example.com")
+                         f"{model.USER_AGENT} Jane Doe jane@example.com")
 
     def test_no_contact(self):
         # Unset, empty, no email, a setting Claude Code didn't fill in, or an attempt

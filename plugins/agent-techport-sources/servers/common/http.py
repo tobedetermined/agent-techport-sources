@@ -7,6 +7,7 @@ rule in the README is enforced in code, not just promised.
 """
 
 import http.client
+import os
 import json
 import ssl
 import time
@@ -15,8 +16,19 @@ import urllib.parse
 import urllib.request
 import zlib
 
-USER_AGENT = "agent-techport-sources/0.1.0 (Claude Code plugin)"
+def _version():
+    """The plugin's version, from its manifest, so requests never carry a stale one."""
+    try:
+        with open(os.path.join(os.path.dirname(__file__), "..", "..", ".claude-plugin", "plugin.json"),
+                  encoding="utf-8") as f:
+            return json.load(f)["version"]
+    except (OSError, ValueError, KeyError):
+        return "unknown"
+
+
+USER_AGENT = f"agent-techport-sources/{_version()} (Claude Code plugin)"
 RETRY_STATUS = {429, 500, 502, 503, 504}
+MAX_RETRY_AFTER = 30        # seconds: a longer Retry-After ends the call with a message instead
 
 
 class SourceError(RuntimeError):
@@ -63,6 +75,12 @@ class OsTrustHTTPSHandler(urllib.request.HTTPSHandler):
         return self.do_open(http.client.HTTPSConnection, req, context=self._os_context)
 
 
+def _retry_after(e):
+    """Seconds a 429 or 503 asked us to wait (Retry-After in seconds), or None."""
+    value = (e.headers or {}).get("Retry-After") if e.headers is not None else None
+    return int(value) if value and str(value).strip().isdigit() else None
+
+
 def _gunzip(payload, max_bytes=None):
     """Decode a gzip body, stopping just past max_bytes so a small download
     can't grow without limit."""
@@ -73,8 +91,9 @@ def _gunzip(payload, max_bytes=None):
 
 class HttpClient:
     def __init__(self, source, allowed_hosts, *, timeout=60, retries=3, backoff=1.0,
-                 extra_headers=None, opener=None, gzip=False):
+                 extra_headers=None, opener=None, gzip=False, status_messages=None):
         self.source = source                  # a name for error messages, e.g. "TechPort"
+        self.status_messages = status_messages or {}     # HTTP status -> what it means for this source
         self.gzip = gzip                      # ask for compressed responses, and decode them
         self.allowed_hosts = set(allowed_hosts)
         self.timeout = timeout
@@ -108,9 +127,11 @@ class HttpClient:
             data = json.dumps(body).encode()
             headers["Content-Type"] = "application/json"
         last = None
+        backoff_done = False
         for attempt in range(self.retries):
-            if attempt:
+            if attempt and not backoff_done:
                 time.sleep(self.backoff * 2 ** (attempt - 1))
+            backoff_done = False
             req = urllib.request.Request(full, data=data, method=method, headers=headers)
             try:
                 with self._open(req, timeout=timeout or self.timeout) as r:
@@ -130,11 +151,18 @@ class HttpClient:
             except urllib.error.HTTPError as e:
                 if e.code in RETRY_STATUS:
                     last = e
+                    wait = _retry_after(e)
+                    if wait is not None and wait > MAX_RETRY_AFTER:
+                        raise SourceError(f"{self.source} is busy (HTTP {e.code}) and asked to be tried again "
+                                          f"in {wait} seconds.") from e
+                    if wait and attempt + 1 < self.retries:
+                        time.sleep(wait)            # instead of the usual backoff, before the next try
+                        backoff_done = True
                     continue
                 if e.code == 404:
                     raise SourceError(f"{self.source}: not found ({e.code}). Check the id; "
                                       "the search tools list valid ones.") from e
-                raise SourceError(f"{self.source} returned HTTP {e.code}.") from e
+                raise self._status_error(e) from e
             except (urllib.error.URLError, TimeoutError, ConnectionError) as e:
                 reason = getattr(e, "reason", None)
                 if isinstance(reason, ssl.SSLCertVerificationError):
@@ -165,7 +193,7 @@ class HttpClient:
                 raise
             except urllib.error.HTTPError as e:
                 if e.code not in RETRY_STATUS:
-                    raise SourceError(f"{self.source} returned HTTP {e.code}.") from e
+                    raise self._status_error(e) from e
                 last = e
             except (urllib.error.URLError, TimeoutError, ConnectionError) as e:
                 last = e
@@ -193,6 +221,14 @@ class HttpClient:
                 while block := r.read(chunk):
                     f.write(block)
                     written += len(block)
+        except urllib.error.HTTPError as e:
+            if e.code in self.status_messages:
+                raise self._status_error(e) from e
+            raise SourceError(f"{self.source}: download failed ({e}).") from e
         except (urllib.error.URLError, TimeoutError, ConnectionError) as e:
             raise SourceError(f"{self.source}: download failed ({e}).") from e
         return written
+
+    def _status_error(self, e):
+        known = self.status_messages.get(e.code)
+        return SourceError(f"{self.source} returned HTTP {e.code}" + (f": {known}" if known else "."))

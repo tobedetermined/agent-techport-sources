@@ -15,7 +15,8 @@ local database of about 0.7 GB), so it is left out unless asked for.
 Run these calls, each exactly as written:
 
 1. TechPort: `techport_programs` with `program_id` 72. Pass if the program's
-   acronym is FO (Flight Opportunities).
+   acronym is FO (Flight Opportunities). If the result's `data` has
+   `via_relay`, write "pass, via relay <host>".
 2. NTRS: `ntrs_search` with `query` "regolith" and `limit` 1. Pass if `total`
    is more than 0.
 3. USAspending: `usaspending_search_awards` with `award_ids` ["NNX09CB40C"]
@@ -45,6 +46,13 @@ to, using these:
 - A timeout or "not responding": the source's host can't be reached from
   this network, or is down. The hosts are listed in the README, "What leaves
   your machine".
+- TechPort says it asked for a NASA login (HTTP 401): this machine is inside
+  NASA's network (the NASA VPN, or on site), where TechPort requires a NASA
+  sign-on for every request. The plugin reads only the public API, so
+  TechPort works off the VPN; the other sources work either way. On the VPN,
+  the plugin's optional setting "Reach TechPort through the public relay"
+  reaches TechPort's public data through a relay instead (README, "TechPort
+  relay").
 - EDGAR says the name or email isn't set: set them with
   `/plugin configure agent-techport-sources@agent-techport-sources`, then
   restart Claude Code.

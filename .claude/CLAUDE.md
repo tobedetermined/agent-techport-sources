@@ -16,7 +16,11 @@ you have one, says where the last session left off and what comes next.
 - The plugin must not route anything through third-party servers or send
   telemetry. The only network calls go to the source hosts, plus PyPI at
   install time, and Astral (`releases.astral.sh`) only if uv has to download
-  Python. Document every host in the README.
+  Python. Document every host in the README. One exception, decided
+  2026-10-01: the optional TechPort relay (`nasatechport-mcp.fly.dev`, run
+  by Alexander van Dijk), off by default, which the user turns on to reach
+  TechPort's public API where `techport.nasa.gov` asks for a login. The
+  README says who runs it, what it keeps and its limits.
 - The public repository started from one squashed commit; the full history
   stays local and is never pushed. Commit messages, like files, are public.
 

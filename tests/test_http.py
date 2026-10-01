@@ -1,6 +1,7 @@
 import gzip
 import importlib.util
 import io
+import json
 import os
 import ssl
 import unittest
@@ -66,6 +67,12 @@ class HttpClientTest(unittest.TestCase):
         c, _ = self.client(resp)
         self.assertEqual(c.head("https://api.example.gov/f")["last-modified"], "Tue, 01 Sep 2026 05:42:41 GMT")
 
+    def test_user_agent_carries_the_manifests_version(self):
+        from tests import PLUGIN_ROOT
+        with open(os.path.join(PLUGIN_ROOT, ".claude-plugin", "plugin.json"), encoding="utf-8") as f:
+            version = json.load(f)["version"]
+        self.assertEqual(http.USER_AGENT, f"agent-techport-sources/{version} (Claude Code plugin)")
+
     def test_params_and_user_agent(self):
         c, calls = self.client(FakeResponse(b'{"ok": true}'))
         self.assertEqual(c.get_json("https://api.example.gov/a", params={"q": "x y", "skip": None}), {"ok": True})
@@ -78,6 +85,22 @@ class HttpClientTest(unittest.TestCase):
         self.assertEqual(c.get_json("https://api.example.gov/a"), [1])
         self.assertEqual(len(calls), 3)
 
+    def test_retry_after_is_waited_for_when_short(self):
+        slept = []
+        real, http.time.sleep = http.time.sleep, slept.append
+        try:
+            busy = urllib.error.HTTPError("u", 429, "busy", {"Retry-After": "5"}, None)
+            c, calls = self.client(busy, FakeResponse(b"[1]"))
+            self.assertEqual(c.get_json("https://api.example.gov/a"), [1])
+            self.assertEqual((slept, len(calls)), ([5], 2))                  # 5 s as asked, no extra backoff
+            long = urllib.error.HTTPError("u", 503, "busy", {"Retry-After": "60"}, None)
+            c, calls = self.client(long)
+            with self.assertRaisesRegex(http.SourceError, r"busy \(HTTP 503\).*in 60 seconds"):
+                c.get_json("https://api.example.gov/a")
+            self.assertEqual(len(calls), 1)                                  # not retried at all
+        finally:
+            http.time.sleep = real
+
     def test_gives_up_with_a_clear_message(self):
         c, _ = self.client(*[urllib.error.URLError("down")] * 3)
         with self.assertRaisesRegex(http.SourceError, "Test is not responding"):
@@ -88,6 +111,22 @@ class HttpClientTest(unittest.TestCase):
         with self.assertRaisesRegex(http.SourceError, "not found"):
             c.get_json("https://api.example.gov/a")
         self.assertEqual(len(calls), 1)
+
+    def test_a_sources_own_meaning_for_a_status(self):
+        # TechPort, from inside NASA's network: every request is answered 401.
+        open_, calls = opener(*[urllib.error.HTTPError("u", 401, "unauthorized", {}, None)] * 3)
+        c = http.HttpClient("Test", {"api.example.gov"}, backoff=0, opener=open_,
+                            status_messages={401: "it asked for a login."})
+        with self.assertRaisesRegex(http.SourceError, r"^Test returned HTTP 401: it asked for a login\.$"):
+            c.get_json("https://api.example.gov/a")
+        with self.assertRaisesRegex(http.SourceError, "HTTP 401: it asked for a login"):
+            c.download("https://api.example.gov/big", "/dev/null")
+        with self.assertRaisesRegex(http.SourceError, "HTTP 401: it asked for a login"):
+            c.head("https://api.example.gov/f")
+        self.assertEqual(len(calls), 3)                    # not retried
+        c, _ = self.client(urllib.error.HTTPError("u", 401, "unauthorized", {}, None))
+        with self.assertRaisesRegex(http.SourceError, r"^Test returned HTTP 401\.$"):     # no meaning given
+            c.get_json("https://api.example.gov/a")
 
     def test_non_json_is_reported_not_crashed_on(self):
         c, _ = self.client(FakeResponse(b"<html>maintenance</html>", "text/html"))

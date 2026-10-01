@@ -38,6 +38,10 @@ comparisons from memory or by tallying records yourself: use techport_aggregate.
 If the tools can't answer, say so; an honest "the data can't answer that" is
 better than a plausible guess.
 
+Relay: when results carry via_relay, the user has set a TechPort relay, so
+TechPort's public data reached this machine through that host rather than
+straight from techport.nasa.gov. Say so once when citing TechPort.
+
 Data freshness: searches with keywords, single projects, programs,
 organizations, capabilities, opportunities and what's-new are live. Counts,
 listings without keywords, contact search and batch lookups come from a local
@@ -72,12 +76,17 @@ def _now():
     return datetime.now(timezone.utc).isoformat(timespec="seconds")
 
 
+def _via():
+    """Where TechPort requests went, when not straight to techport.nasa.gov."""
+    return {"via_relay": tp.relay_host} if tp.relay_host else {}
+
+
 def _live(extra=None):
-    return {"source": "TechPort live API (techport.nasa.gov)", "retrieved_at": _now(), **(extra or {})}
+    return {"source": "TechPort live API (techport.nasa.gov)", **_via(), "retrieved_at": _now(), **(extra or {})}
 
 
 def _copy_notice(meta):
-    notice = {"source": "daily local copy of TechPort", "as_of": meta.get("loaded_at"),
+    notice = {"source": "local copy of TechPort, checked for changes daily", **_via(), "as_of": copy.as_of(meta),
               "projects_in_copy": int(meta.get("projects", 0))}
     if _last_failure["reason"]:
         notice["refresh_problem"] = (f"The last refresh failed ({_last_failure['reason']}); "
@@ -100,8 +109,25 @@ _last_failure = {"at": 0.0, "reason": None}
 
 
 def _build_copy(first=False):
-    """Pull and load the copy. On first build, TechPort's id list (a small, separate
-    endpoint) says how many projects to expect, so a truncated dump is rejected."""
+    """Bring the copy up to date: fetch only what changed when there is a recent
+    full pull, else pull and load everything. On first build, TechPort's id list
+    (a small, separate endpoint) says how many projects to expect, so a truncated
+    dump is rejected."""
+    meta, _ = copy.status(_data_dir())
+    if meta and not first and not copy.full_pull_due(meta) and not os.environ.get("TECHPORT_JSON_PATH"):
+        try:
+            # A shared relay limits each address to 60 requests a minute; pace well under it.
+            updated = copy.update(_data_dir(), tp, pause=1.0 if tp.relay_host else 0.2)
+            if updated is not None:
+                missed = int(updated.get("last_update_failed") or 0)
+                if missed:      # kept what it got; wait an hour before asking again
+                    _last_failure.update(at=time.time(), reason=f"{missed} changed projects couldn't be fetched")
+                else:
+                    _last_failure.update(at=0.0, reason=None)
+                return
+        except Exception as e:
+            _last_failure.update(at=time.time(), reason=str(e))
+            raise
     expected = None
     if first and not os.environ.get("TECHPORT_JSON_PATH"):
         try:
@@ -109,7 +135,8 @@ def _build_copy(first=False):
         except SourceError:
             expected = None
     try:
-        copy.refresh(_data_dir(), tp.http, os.environ.get("TECHPORT_JSON_PATH"), expected=expected)
+        copy.refresh(_data_dir(), tp.http, os.environ.get("TECHPORT_JSON_PATH"), expected=expected,
+                     url=tp.search_url)
         _last_failure.update(at=0.0, reason=None)
     except Exception as e:
         _last_failure.update(at=time.time(), reason=str(e))
@@ -137,8 +164,8 @@ def _refresh_in_background():
 
 
 def _open_copy():
-    """(db, meta) for the daily copy. Builds it on first use (about 15 s);
-    refreshes it in the background when it is more than a day old."""
+    """(db, meta) for the local copy. Builds it on first use (about 15 s); brings
+    it up to date in the background when it was last checked over a day ago."""
     meta, fresh = copy.status(_data_dir())
     if meta is None:
         with _copy_lock:

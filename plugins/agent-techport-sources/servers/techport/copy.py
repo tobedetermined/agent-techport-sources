@@ -1,26 +1,33 @@
-"""The daily copy of TechPort, for the questions the live API can't answer.
+"""The local copy of TechPort, for the questions the live API can't answer.
 
 TechPort's API can search by keyword but can't filter, page or count. An empty
-search returns every project (21,044 on 2026-09-30, 115 MB). This module pulls
-that at most once a day, when a tool first needs it, and loads it into SQLite
-for aggregates, listings without a keyword, contact search and batch lookups.
-Every answer from it states its date. Standard library only.
+search returns every project (21,044 on 2026-09-30, 115 MB). This module loads
+that into SQLite for aggregates, listings without a keyword, contact search and
+batch lookups, then keeps it current cheaply: once a day, when a tool needs it,
+it asks TechPort which projects changed and fetches only those (about 59 on a
+typical day, under 1 MB), and pulls the whole list again once a week. Every
+answer from it states its date. Standard library only.
 """
 
 import json
 import os
+import shutil
 import sqlite3
 import time
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 
 from ..common import dbfiles
+from ..common.http import SourceError
 from ..common.jsonstream import iter_array
 from .model import normalize
 
 SEARCH_URL = "https://techport.nasa.gov/api/projects/search"
 SCHEMA_VERSION = "1"
 PREFIX = "techport"
-MAX_AGE_SECONDS = 24 * 3600
+MAX_AGE_SECONDS = 24 * 3600            # how often to check TechPort for changes
+FULL_EVERY_SECONDS = 7 * 24 * 3600     # a full pull, which also drops deleted projects
+MAX_UPDATES = 2000                     # more changes than this, and a full pull is cheaper
+MAX_FAILURES_IN_A_ROW = 5              # then the source is taken to be down, and the update stops
 # A load more than 10% short of the expected count is rejected and the old copy
 # kept. TechPort's search has failed before by returning a fixed 50 results.
 MIN_SHARE = 0.9
@@ -157,24 +164,111 @@ def load(json_path, db_path, source=None, expected=None):
     return meta
 
 
-def _age_seconds(meta):
+def _age_seconds(meta, key="loaded_at"):
     try:
-        loaded = datetime.fromisoformat(meta["loaded_at"])
-    except (KeyError, ValueError):
+        when = datetime.fromisoformat(meta[key])
+    except (KeyError, ValueError, TypeError):
         return float("inf")
-    return (datetime.now(timezone.utc) - loaded).total_seconds()
+    return (datetime.now(timezone.utc) - when).total_seconds()
+
+
+def as_of(meta):
+    """When the copy last matched TechPort: its last update, or its full pull."""
+    return meta.get("checked_at") or meta.get("loaded_at")
 
 
 def status(data_dir):
-    """(meta or None, is_fresh) for the current copy."""
+    """(meta or None, is_fresh) for the current copy. Fresh means checked
+    against TechPort within the last day."""
     path = dbfiles.current_path(data_dir)
     meta = dbfiles.read_meta(path) if path else None
     if meta and meta.get("schema_version") != SCHEMA_VERSION:
         meta = None
-    return meta, bool(meta) and _age_seconds(meta) < MAX_AGE_SECONDS
+    return meta, bool(meta) and _age_seconds({"at": as_of(meta)}, "at") < MAX_AGE_SECONDS
 
 
-def refresh(data_dir, http, json_override=None, expected=None):
+def full_pull_due(meta):
+    return _age_seconds(meta) >= FULL_EVERY_SECONDS
+
+
+def _delete_project(db, project_id):
+    for table, column in (("projects", "id"), ("destinations", "project_id"), ("outcomes", "project_id"),
+                          ("org_categories", "project_id"), ("contacts", "project_id"),
+                          ("projects_fts", "rowid")):
+        db.execute(f"DELETE FROM {table} WHERE {column} = ?", (project_id,))
+
+
+def to_update(db, tp, meta, today):
+    """The project ids to fetch again: those TechPort lists as changed since a day
+    before the last check, and those still Active whose end date has passed.
+    TechPort marks a project Completed when its end date passes (around the
+    month's end) without listing it as changed (seen 2026-10-01)."""
+    since = (datetime.fromisoformat(as_of(meta)) - timedelta(days=1)).date().isoformat()
+    changed = {p["projectId"] for p in tp.updated_since(since)}
+    ended = {r[0] for r in db.execute("SELECT id FROM projects WHERE status = 'Active' AND end_date < ?",
+                                      (today,))}
+    return changed | ended
+
+
+def update(data_dir, tp, pause=0.0, today=None):
+    """Bring the current copy up to date by fetching only the projects that
+    changed. Returns the new meta, or None when so many changed that a full
+    pull is cheaper. Each project is fetched in the same shape as the full pull
+    (TechPort's search, by its number: checked identical on 25 projects but for
+    list order and view counts, 2026-10-01). The update is applied to a copy of
+    the database file, which then replaces the current one as a full build does,
+    so other sessions reading it are never disturbed."""
+    current = dbfiles.current_path(data_dir)
+    meta = dbfiles.read_meta(current)
+    today = today or datetime.now(timezone.utc).date().isoformat()
+    ro = dbfiles.connect_ro(current)
+    try:
+        ids = sorted(to_update(ro, tp, meta, today))
+    finally:
+        ro.close()
+    if len(ids) > MAX_UPDATES:
+        return None
+
+    def fill(path):
+        shutil.copyfile(current, path)
+        db = sqlite3.connect(path)
+        try:
+            fetched, not_found, failed, in_a_row = 0, 0, 0, 0
+            for n, pid in enumerate(ids):
+                if n and pause:
+                    time.sleep(pause)
+                try:
+                    found = tp.search(str(pid), 5).get("results") or []
+                except SourceError:
+                    failed += 1             # skipped, and tried again next time
+                    in_a_row += 1
+                    if in_a_row >= MAX_FAILURES_IN_A_ROW:
+                        break
+                    continue
+                in_a_row = 0
+                hits = [r for r in found if r.get("projectId") == pid]
+                if not hits:
+                    not_found += 1          # left as it is; the weekly full pull settles it
+                    continue
+                _delete_project(db, pid)
+                insert_project(db, normalize(hits[0]))
+                fetched += 1
+            count = db.execute("SELECT count(*) FROM projects").fetchone()[0]
+            done = {"projects": str(count), "last_update_fetched": str(fetched),
+                    "last_update_not_found": str(not_found), "last_update_failed": str(failed + len(ids) - n - 1
+                                                                                       if ids else 0)}
+            if not failed:
+                # Only a complete update moves the check date: otherwise the next one
+                # asks again from the same date, so nothing skipped drops out of view.
+                done["checked_at"] = datetime.now(timezone.utc).isoformat(timespec="seconds")
+            db.executemany("INSERT OR REPLACE INTO meta VALUES (?,?)", done.items())
+            db.commit()
+        finally:
+            db.close()
+    return dbfiles.read_meta(dbfiles.build(data_dir, PREFIX, fill))
+
+
+def refresh(data_dir, http, json_override=None, expected=None, url=SEARCH_URL):
     """Pull the full project list and build a new copy. Returns its meta.
 
     expected: roughly how many projects there should be. Defaults to the
@@ -188,8 +282,8 @@ def refresh(data_dir, http, json_override=None, expected=None):
         return dbfiles.read_meta(dbfiles.build(data_dir, PREFIX, lambda p: load(json_override, p, source, expected)))
     part = os.path.join(data_dir, f"search.{os.getpid()}.json.part")
     try:
-        size = http.download(SEARCH_URL, part)
-        source = {"source": SEARCH_URL, "source_bytes": str(size)}
+        size = http.download(url, part)             # url: TechPort's, or a relay's
+        source = {"source": url, "source_bytes": str(size)}
         return dbfiles.read_meta(dbfiles.build(data_dir, PREFIX, lambda p: load(part, p, source, expected)))
     finally:
         if os.path.exists(part):
