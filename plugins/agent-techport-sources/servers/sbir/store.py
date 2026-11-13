@@ -109,7 +109,10 @@ STATE_CODES = {
     "West Virginia": "WV", "Wisconsin": "WI", "Wyoming": "WY",
 }
 
-PHASES = {"Phase I": 1, "Phase II": 2}
+# Since the file of 2026-11-01, 3,303 Phase II awards (DOD, HHS, ED; no NASA)
+# are labelled "Phase II – Direct to Phase II" (with an en dash). They were
+# "Phase II" in the file of 2026-09-01, so they load as phase 2.
+PHASES = {"Phase I": 1, "Phase II": 2, "Phase II – Direct to Phase II": 2}
 
 # Values the file uses to mean "no value". Only unambiguous placeholders are
 # listed; anything that might be real data is kept.
@@ -208,6 +211,17 @@ def _create_indexes(db):
     """)
 
 
+def _header_differences(header):
+    """The positions where the file's header is not the expected one, as text."""
+    diffs = []
+    for i in range(max(len(header), len(HEADER))):
+        want = HEADER[i] if i < len(HEADER) else None
+        got = header[i] if i < len(header) else None
+        if want != got:
+            diffs.append(f"column {i + 1}: expected {want!r}, got {got!r}")
+    return "; ".join(diffs)
+
+
 def load_csv(csv_path, db_path, source=None):
     """Build a fresh database at db_path from the CSV. Returns the load summary.
 
@@ -229,13 +243,16 @@ def load_csv(csv_path, db_path, source=None):
         issues = []
         rows = 0
         batch = []
-        with open(csv_path, newline="", encoding="utf-8", errors="replace") as f:
+        # utf-8-sig: SBIR.gov started to put a byte-order mark at the start of
+        # the file (2026-11). It is removed if there is one.
+        with open(csv_path, newline="", encoding="utf-8-sig", errors="replace") as f:
             reader = csv.reader(f)
             header = next(reader)
             if header != HEADER:
                 raise ValueError(
                     "SBIR file header has changed; the loader needs updating. "
-                    f"Expected {len(HEADER)} columns, got {header!r}")
+                    f"Expected {len(HEADER)} columns, got {len(header)}. "
+                    f"Differences: {_header_differences(header)}")
             for raw in reader:
                 if len(raw) != len(HEADER):
                     issues.append((reader.line_num, "malformed_row",

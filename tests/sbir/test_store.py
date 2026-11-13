@@ -106,8 +106,25 @@ class LoadSampleTest(unittest.TestCase):
         bad = os.path.join(self.tmp, "bad.csv")
         with open(SAMPLE, encoding="utf-8") as f, open(bad, "w", encoding="utf-8") as out:
             out.write(f.read().replace("Award Title", "Title", 1))
-        with self.assertRaises(ValueError):
+        with self.assertRaises(ValueError) as caught:
             store.load_csv(bad, os.path.join(self.tmp, "bad.db"))
+        self.assertIn("column 2: expected 'Award Title', got 'Title'", str(caught.exception))
+        self.assertNotIn("Company", str(caught.exception))   # only the differences
+
+    def test_byte_order_mark_is_ignored(self):
+        # The SBIR.gov file starts with a UTF-8 byte-order mark (seen in the
+        # file of 2026-11-01). It must not count as part of the first header.
+        bom = os.path.join(self.tmp, "bom.csv")
+        with open(SAMPLE, encoding="utf-8") as f, open(bom, "w", encoding="utf-8-sig") as out:
+            out.write(f.read())
+        meta = store.load_csv(bom, os.path.join(self.tmp, "bom.db"))
+        self.assertEqual(meta["rows_loaded"], self.meta["rows_loaded"])
+        db = sqlite3.connect(os.path.join(self.tmp, "bom.db"))
+        try:
+            first = db.execute("SELECT company FROM awards ORDER BY id LIMIT 1").fetchone()[0]
+        finally:
+            db.close()
+        self.assertFalse(first.startswith("﻿"))
 
 
 class PlaceholderTest(unittest.TestCase):
@@ -118,6 +135,12 @@ class PlaceholderTest(unittest.TestCase):
         for header, value in values.items():
             raw[store.HEADER.index(header)] = value
         return store.clean_row(raw)
+
+    def test_direct_to_phase_ii_is_phase_2(self):
+        # The label SBIR.gov uses since the file of 2026-11-01 (en dash).
+        self.assertEqual(self.clean(Phase="Phase II – Direct to Phase II")["phase"], 2)
+        self.assertEqual(self.clean(Phase="Phase II")["phase"], 2)
+        self.assertIsNone(self.clean(Phase="Phase III")["phase"])
 
     def test_placeholder_words_load_as_empty(self):
         row = self.clean(**{"Abstract": "N/A", "Topic Code": " na ", "PI Title": "null",

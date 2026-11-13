@@ -1,6 +1,6 @@
 # Agent TechPort Sources: design note
 
-Status: **in development, plugin version 0.1.5.** The SBIR, TechPort and
+Status: **in development, plugin version 0.1.6.** The SBIR, TechPort and
 USAspending servers are built and tested; the other three sources are planned. Decisions and
 evidence date from 2026-09-30. Every number below was measured unless it is
 marked *assumed*.
@@ -154,7 +154,22 @@ date changes. Allow a user-supplied file path as an override.
   file instead, and reloads it when its size or modification time changes.
 - **Header check:** the 42 column names must match the expected list exactly.
   If SBIR.gov changes the file layout, the load stops instead of putting values
-  in the wrong columns.
+  in the wrong columns. The error names only the columns that differ.
+  Since the file of 2026-11-01, SBIR.gov puts a UTF-8 byte-order mark (BOM,
+  bytes `EF BB BF`) before the first header. Up to 0.1.5 the loader kept it
+  as part of "Company", so the check failed and each refresh stopped, and the
+  tools answered from the October file with a "stale" note. The loader now
+  reads the file as `utf-8-sig`, which removes a BOM if there is one; a test
+  loads the sample file with a BOM.
+  The same file labels 3,303 Phase II awards (DOD 2,608, HHS 689, ED 6; no
+  NASA) "Phase II – Direct to Phase II", with an en dash. They were "Phase II"
+  in the file of 2026-09-01. The loader maps the new label to phase 2, as
+  before, so the "direct" distinction is not kept. Measured 2026-11-13 on the
+  file of 2026-11-01 with both fixes: 219,780 rows (190 more than in
+  September), no malformed rows, no load issues, no row without a phase, and
+  the NASA counts in "Data quirks" unchanged (19,485 awards; 5,617 since
+  2015). The real-file tests still use the September numbers, so with this
+  file two of them fail on the total row count and the "sensor" keyword count.
 - **Schema:** snake_case column names, our own `id`, and two added codes:
   `agency_code` (NASA, DOD, HHS, DOE, NSF, USDA, EPA, DOC, ED, DOT, DHS, NRC,
   DOI; the 13 agencies in the file) and `state_code` (states, DC and
